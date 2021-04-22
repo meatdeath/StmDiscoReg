@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h> //for va_list var arg functions
+#include "time.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -514,15 +515,24 @@ void StoreData(void) {
 }
 
 void RTC_InitTime(void) {
-	sTime.Hours = 23;
-	sTime.Minutes = 22;
+	sTime.Hours = 17;
+	sTime.Minutes = 30;
 	sTime.Seconds = 0;
-	sDate.Date = 21;
+	sDate.Date = 22;
 	sDate.Month = RTC_MONTH_APRIL;
 	sDate.WeekDay = RTC_WEEKDAY_WEDNESDAY;
 	sDate.Year = 21;
 	HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+}
+
+DWORD GetTimeFromRTC(void) {
+	return ((DWORD)(2000 + sDate.Year - 1900) << 25)  // Year 2014
+	        | ((DWORD)sDate.Month << 21)            // Month 7
+	        | ((DWORD)sDate.Date << 16)           // Mday 10
+	        | ((DWORD)sTime.Hours << 11)           // Hour 16
+	        | ((DWORD)sTime.Minutes << 5)             // Min 0
+	        | ((DWORD)sTime.Seconds >> 1);            // Sec 0
 }
 
 void PrintADCValues(void) {

@@ -24,7 +24,7 @@ FATFS USBHFatFS;    /* File system object for USBH logical drive */
 FIL USBHFile;       /* File object for USBH */
 
 /* USER CODE BEGIN Variables */
-
+extern DWORD GetTimeFromRTC(void);
 /* USER CODE END Variables */
 
 void MX_FATFS_Init(void)
@@ -45,7 +45,7 @@ void MX_FATFS_Init(void)
 DWORD get_fattime(void)
 {
   /* USER CODE BEGIN get_fattime */
-  return 0;
+	return GetTimeFromRTC();
   /* USER CODE END get_fattime */
 }
 
