@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdarg.h> //for va_list var arg functions
 #include "time.h"
+#include "WM.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,13 +49,7 @@
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
-CRC_HandleTypeDef hcrc;
-
-DMA2D_HandleTypeDef hdma2d;
-
 I2C_HandleTypeDef hi2c3;
-
-LTDC_HandleTypeDef hltdc;
 
 RTC_HandleTypeDef hrtc;
 
@@ -67,6 +62,13 @@ UART_HandleTypeDef huart1;
 SDRAM_HandleTypeDef hsdram1;
 
 /* USER CODE BEGIN PV */
+// ---------------------------------------------------- LCD --------------------
+
+uint8_t GUI_Initialized = 0;
+
+TIM_HandleTypeDef htim3;
+uint32_t uwPrescalerValue = 0;
+
 //----------------------------------------------------- RTC ----------------------
 RTC_TimeTypeDef sTime;
 RTC_DateTypeDef sDate;
@@ -77,17 +79,31 @@ FATFS USBDISKFatFs;           /* File system object for USB disk logical drive *
 FIL MyFile;                   /* File object */
 char USBDISKPath[4];          /* USB Host logical drive path */
 USBH_HandleTypeDef hUSB_Host; /* USB Host handle */
+
 WORD adc_dma_buf[ADC_DMA_BUF_SIZE];
+
+
+
+extern WM_HWIN CreateFramewin(void);
+extern void MainTaskFonts(void);
+extern void CreateDialog(void);
+extern void DialogProcess(void);
+extern void UpdateVoltageEdit(int16_t voltage);
+extern void UpdateDateEdit(uint16_t year, uint8_t month, uint8_t day);
+extern void UpdateTimeEdit(uint16_t hour, uint8_t min, uint8_t sec);
+extern void UpdateProgressBar(uint8_t percentage);
+extern void UpdateStatusText(const char *str);
+extern void AddGraphData(int16_t low_value, int16_t high_value);
+
+extern void BSP_Pointer_Update(void);
+extern void BSP_Background(void);
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_CRC_Init(void);
-static void MX_DMA2D_Init(void);
 static void MX_FMC_Init(void);
-static void MX_LTDC_Init(void);
 static void MX_SPI5_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_ADC1_Init(void);
@@ -187,13 +203,12 @@ void USB_Benchmark_Application(void)
 						}
 						else
 						{
-							FIL fil; 		//File handle
 							UINT bytesWritten;
 
 							myprintf("Starting USB write benchmark...\r\n");
 
 							DWORD start_time = HAL_GetTick();
-							res = f_open(&fil, "usb_benchmark.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
+							res = f_open(&MyFile, "usb_benchmark.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
 
 							if(res == FR_OK) {
 								myprintf("I was able to open 'usb_benchmark.txt' for writing\r\n");
@@ -208,7 +223,7 @@ void USB_Benchmark_Application(void)
 
 							for( uint32_t i = 0; i < store_data_size; i += write_block_size ) {
 								memset(usb_buf,i/write_block_size,write_block_size);
-								res = f_write(&fil, usb_buf, write_block_size, &bytesWritten);
+								res = f_write(&MyFile, usb_buf, write_block_size, &bytesWritten);
 								if(res == FR_OK) {
 									//myprintf("Wrote %i bytes to 'write.txt'!\r\n", bytesWrote);
 								} else {
@@ -216,7 +231,7 @@ void USB_Benchmark_Application(void)
 								}
 							}
 
-							f_close(&fil);
+							f_close(&MyFile);
 
 							DWORD test_duration = HAL_GetTick() - start_time;
 							myprintf("Benchmark time: %ul.%uls\r\nWrite speed: %ulKB/s\r\n",
@@ -247,6 +262,7 @@ volatile uint8_t events = 0;
 
 void USB_OnAttach(void) {
 	FRESULT res;
+
 	char test_text[] = "Test write into the file.";
 	UINT byteswritten;
 	// USB_Benchmark_Application();
@@ -293,7 +309,7 @@ void USB_OnAttach(void) {
 	} else {
 		myprintf("ERROR! FS access not granted!\r\n");
 	}
-	HAL_Delay(2000);
+	//HAL_Delay(2000);
 }
 
 void USB_OnDetach(void) {
@@ -313,7 +329,6 @@ volatile uint32_t sdram_buf_index = 0;
 
 #define SDRAM_BANK_ADDR     ((uint32_t)0xD0000000)
 #define WRITE_READ_ADDR     ((uint32_t)0x100000) //((uint32_t)0x0800)
-#define REFRESH_COUNT       ((uint32_t)0x056A)   /* SDRAM refresh counter (90MHz SDRAM clock) */
 
 const int v_max = 600;
 
@@ -405,6 +420,7 @@ void StoreData(void) {
 	if(events&EVT_USB_ATTACHED) {
 		FRESULT res;                                          /* FatFs function common result code */
 
+		UpdateStatusText("Writing on USB stick...");
 		myprintf("Mounting USB... ");
 		/* Register the file system object to the FatFs module */
 		if((res=f_mount(&USBDISKFatFs, (TCHAR const*)USBDISKPath, 0)) != FR_OK)
@@ -414,7 +430,6 @@ void StoreData(void) {
 		}
 		else
 		{
-			FIL fil; 		//File handle
 			UINT bytesWritten;
 			UINT total_written = 0;
 
@@ -426,7 +441,7 @@ void StoreData(void) {
 
 			myprintf("ok\r\nOpening file '%s' for writing... ", filename);
 			DWORD start_time = HAL_GetTick();
-			res = f_open(&fil, filename, FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
+			res = f_open(&MyFile, filename, FA_WRITE | FA_CREATE_ALWAYS);
 
 			if(res == FR_OK) {
 				myprintf("ok\r\n");
@@ -449,21 +464,24 @@ void StoreData(void) {
 				minute--;
 			}
 			int fraction = 0;
+			char line[30];
 
 			for(int i = 0; i < SDRAM_BUF_SIZE; i++) {
 				if((i%1000) == 0) {
 					char progress_str[60];
-					sprintf(progress_str, "Writing... [------------------------------] %d%%\r", (i*100)/SDRAM_BUF_SIZE);
+					uint32_t percentage = (i*100)/SDRAM_BUF_SIZE;
+					sprintf(progress_str, "Writing... [______________________________] %ld%% \r", percentage);
 
 					int j, max = 12+(i/10000);
 					for(j = 12; j < max; j++) {
 						progress_str[j] = '#';
 					}
 					int iii = (i/1000)%10;
-					progress_str[j] = "-\\|/-\\|/--"[iii];
+					progress_str[j] = ".:|/-\\|/-\\|"[iii];
 					myprintf(progress_str);
+					UpdateProgressBar(percentage);
+					DialogProcess();
 				}
-				char line[30];
 				uint32_t address_offset = sdram_buf_index + i;
 				if(address_offset >= SDRAM_BUF_SIZE) address_offset -= SDRAM_BUF_SIZE;
 				uint16_t adc_value = *(__IO uint16_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR + sizeof(uint16_t)*address_offset);
@@ -471,7 +489,7 @@ void StoreData(void) {
 				sprintf(line, "%02d:%02d:%02d.%03d\t%d\r\n", hour, minute, second, fraction, voltage);
 				uint32_t line_size = strlen(line);
 
-				res = f_write(&fil, line, line_size, &bytesWritten);
+				res = f_write(&MyFile, line, line_size, &bytesWritten);
 				if(res == FR_OK) {
 					total_written += bytesWritten;
 				} else {
@@ -495,8 +513,9 @@ void StoreData(void) {
 				}
 			}
 			myprintf("Writing... [##############################] 100%%\r\n");
+			UpdateProgressBar(100);
 
-			f_close(&fil);
+			f_close(&MyFile);
 
 			DWORD test_duration = HAL_GetTick() - start_time;
 			char report_str[50];
@@ -512,6 +531,7 @@ void StoreData(void) {
 		FATFS_UnLinkDriver(USBDISKPath);
 		myprintf("done\r\n");
 	}
+	UpdateStatusText("Monitoring...");
 }
 
 void RTC_InitTime(void) {
@@ -527,12 +547,12 @@ void RTC_InitTime(void) {
 }
 
 DWORD GetTimeFromRTC(void) {
-	return ((DWORD)(2000 + sDate.Year - 1900) << 25)  // Year 2014
-	        | ((DWORD)sDate.Month << 21)            // Month 7
-	        | ((DWORD)sDate.Date << 16)           // Mday 10
-	        | ((DWORD)sTime.Hours << 11)           // Hour 16
-	        | ((DWORD)sTime.Minutes << 5)             // Min 0
-	        | ((DWORD)sTime.Seconds >> 1);            // Sec 0
+	return ((DWORD)(2000 + sDate.Year - 1900) << 25)
+	        | ((DWORD)sDate.Month << 21)
+	        | ((DWORD)sDate.Date << 16)
+	        | ((DWORD)sTime.Hours << 11)
+	        | ((DWORD)sTime.Minutes << 5)
+	        | ((DWORD)sTime.Seconds >> 1);
 }
 
 void PrintADCValues(void) {
@@ -553,6 +573,7 @@ void PrintADCValues(void) {
 
 		int16_t low_voltage = GetVoltage(low);
 		int16_t high_voltage = GetVoltage(high);
+		AddGraphData(low_voltage, high_voltage);
 
 		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
@@ -560,6 +581,20 @@ void PrintADCValues(void) {
 				sDate.Year, sDate.Month, sDate.Date,
 				sTime.Hours, sTime.Minutes, sTime.Seconds,
 				low_voltage, high_voltage);
+
+		UpdateDateEdit(sDate.Year+2000, sDate.Month, sDate.Date);
+		UpdateTimeEdit(sTime.Hours, sTime.Minutes, sTime.Seconds);
+		if( low_voltage <= 0 && high_voltage >= 0 ) {
+			if( high_voltage >= (-low_voltage) ) {
+				UpdateVoltageEdit(high_voltage);
+			} else {
+				UpdateVoltageEdit(low_voltage);
+			}
+		} else if( high_voltage > 0 ) {
+			UpdateVoltageEdit(high_voltage);
+		} else {
+			UpdateVoltageEdit(low_voltage);
+		}
 	}
 }
 
@@ -642,6 +677,61 @@ static void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM
   HAL_SDRAM_ProgramRefreshRate(hsdram, REFRESH_COUNT);
 }
 
+/**
+  * @brief  Initializes the STM32F429I-DISCO's LCD and LEDs resources.
+  * @param  None
+  * @retval None
+  */
+static void BSP_Config(void)
+{
+  /* Initialize STM32F429I-DISCO's LEDs */
+  BSP_LED_Init(LED3);
+  BSP_LED_Init(LED4);
+
+  /* Initializes the SDRAM device */
+  BSP_SDRAM_Init();
+
+  /* Initialize the Touch screen */
+  BSP_TS_Init(240, 320);
+
+  /* Enable the CRC Module */
+  __HAL_RCC_CRC_CLK_ENABLE();
+}
+
+void TIM3_Init(void) {
+	  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+	  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+	  /* USER CODE BEGIN TIM3_Init 1 */
+
+	  /* USER CODE END TIM3_Init 1 */
+	  htim3.Instance = TIM3;
+	  htim3.Init.Prescaler = 1000-1;
+	  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+	  htim3.Init.Period = 8400-1;
+	  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+	  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+	  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+	  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+	  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+	  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+	  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+	  if (HAL_TIM_Base_Start_IT(&htim3) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -671,10 +761,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_CRC_Init();
-  MX_DMA2D_Init();
   MX_FMC_Init();
-  MX_LTDC_Init();
   MX_SPI5_Init();
   MX_USART1_UART_Init();
   MX_ADC1_Init();
@@ -684,16 +771,42 @@ int main(void)
   MX_USB_HOST_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  RTC_InitTime();
-  LD3_ON();
-  //HAL_TIM_Base_Start_IT(&htim2);
-  HAL_TIM_Base_Start(&htim2);
-  //HAL_ADC_Start(&hadc1);
-  HAL_ADC_Start_IT(&hadc1);
+  myprintf("\r\nStarting...");
+  /* Initialize LCD and LEDs */
+  BSP_Config();
+
+  TIM3_Init();
+
+  /* Init the STemWin GUI Library */
+  GUI_Init();
+
+  WM_MULTIBUF_Enable(1);
+
+  /* Activate the use of memory device feature */
+  WM_SetCreateFlags(WM_CF_MEMDEV);
+
+  GUI_SetBkColor(GUI_BLACK);
+
+  GUI_Clear();
+
+  CreateDialog();
+
+  GUI_Initialized = 1;
+
+
+
+	RTC_InitTime();
+	LD3_ON();
+	//HAL_TIM_Base_Start_IT(&htim2);
+	HAL_TIM_Base_Start(&htim2);
+	//HAL_ADC_Start(&hadc1);
+	HAL_ADC_Start_IT(&hadc1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	  myprintf("ok\r\n");
 	while (1)
 	{
 		PrintADCValues();
@@ -708,6 +821,9 @@ int main(void)
 			HAL_Delay(2000);
 			HAL_TIM_Base_Start(&htim2);
 		}
+
+		DialogProcess();
+
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
 
@@ -758,10 +874,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC|RCC_PERIPHCLK_RTC;
-  PeriphClkInitStruct.PLLSAI.PLLSAIN = 432;
-  PeriphClkInitStruct.PLLSAI.PLLSAIR = 2;
-  PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_2;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
   PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_HSE_DIV25;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
@@ -820,69 +933,6 @@ static void MX_ADC1_Init(void)
 }
 
 /**
-  * @brief CRC Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_CRC_Init(void)
-{
-
-  /* USER CODE BEGIN CRC_Init 0 */
-
-  /* USER CODE END CRC_Init 0 */
-
-  /* USER CODE BEGIN CRC_Init 1 */
-
-  /* USER CODE END CRC_Init 1 */
-  hcrc.Instance = CRC;
-  if (HAL_CRC_Init(&hcrc) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN CRC_Init 2 */
-
-  /* USER CODE END CRC_Init 2 */
-
-}
-
-/**
-  * @brief DMA2D Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_DMA2D_Init(void)
-{
-
-  /* USER CODE BEGIN DMA2D_Init 0 */
-
-  /* USER CODE END DMA2D_Init 0 */
-
-  /* USER CODE BEGIN DMA2D_Init 1 */
-
-  /* USER CODE END DMA2D_Init 1 */
-  hdma2d.Instance = DMA2D;
-  hdma2d.Init.Mode = DMA2D_M2M;
-  hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB565;
-  hdma2d.Init.OutputOffset = 0;
-  hdma2d.LayerCfg[1].InputOffset = 0;
-  hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB565;
-  hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
-  hdma2d.LayerCfg[1].InputAlpha = 0;
-  if (HAL_DMA2D_Init(&hdma2d) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_DMA2D_ConfigLayer(&hdma2d, 1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN DMA2D_Init 2 */
-
-  /* USER CODE END DMA2D_Init 2 */
-
-}
-
-/**
   * @brief I2C3 Initialization Function
   * @param None
   * @retval None
@@ -925,68 +975,6 @@ static void MX_I2C3_Init(void)
   /* USER CODE BEGIN I2C3_Init 2 */
 
   /* USER CODE END I2C3_Init 2 */
-
-}
-
-/**
-  * @brief LTDC Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_LTDC_Init(void)
-{
-
-  /* USER CODE BEGIN LTDC_Init 0 */
-
-  /* USER CODE END LTDC_Init 0 */
-
-  LTDC_LayerCfgTypeDef pLayerCfg = {0};
-
-  /* USER CODE BEGIN LTDC_Init 1 */
-
-  /* USER CODE END LTDC_Init 1 */
-  hltdc.Instance = LTDC;
-  hltdc.Init.HSPolarity = LTDC_HSPOLARITY_AL;
-  hltdc.Init.VSPolarity = LTDC_VSPOLARITY_AL;
-  hltdc.Init.DEPolarity = LTDC_DEPOLARITY_AL;
-  hltdc.Init.PCPolarity = LTDC_PCPOLARITY_IPC;
-  hltdc.Init.HorizontalSync = 7;
-  hltdc.Init.VerticalSync = 3;
-  hltdc.Init.AccumulatedHBP = 14;
-  hltdc.Init.AccumulatedVBP = 5;
-  hltdc.Init.AccumulatedActiveW = 334;
-  hltdc.Init.AccumulatedActiveH = 245;
-  hltdc.Init.TotalWidth = 340;
-  hltdc.Init.TotalHeigh = 247;
-  hltdc.Init.Backcolor.Blue = 0;
-  hltdc.Init.Backcolor.Green = 0;
-  hltdc.Init.Backcolor.Red = 0;
-  if (HAL_LTDC_Init(&hltdc) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  pLayerCfg.WindowX0 = 0;
-  pLayerCfg.WindowX1 = 240;
-  pLayerCfg.WindowY0 = 0;
-  pLayerCfg.WindowY1 = 320;
-  pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
-  pLayerCfg.Alpha = 255;
-  pLayerCfg.Alpha0 = 0;
-  pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
-  pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
-  pLayerCfg.FBStartAdress = 0xD0000000;
-  pLayerCfg.ImageWidth = 240;
-  pLayerCfg.ImageHeight = 320;
-  pLayerCfg.Backcolor.Blue = 0;
-  pLayerCfg.Backcolor.Green = 0;
-  pLayerCfg.Backcolor.Red = 0;
-  if (HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN LTDC_Init 2 */
-
-  /* USER CODE END LTDC_Init 2 */
 
 }
 
@@ -1247,6 +1235,14 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOG, LD3_Pin|LD4_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin : ENABLE_Pin */
+  GPIO_InitStruct.Pin = ENABLE_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
+  HAL_GPIO_Init(ENABLE_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : NCS_MEMS_SPI_Pin CSX_Pin OTG_FS_PSO_Pin */
   GPIO_InitStruct.Pin = NCS_MEMS_SPI_Pin|CSX_Pin|OTG_FS_PSO_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -1258,6 +1254,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = B1_Pin|MEMS_INT1_Pin|MEMS_INT2_Pin|TP_INT1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : B5_Pin VSYNC_Pin G2_Pin R4_Pin
+                           R5_Pin */
+  GPIO_InitStruct.Pin = B5_Pin|VSYNC_Pin|G2_Pin|R4_Pin
+                          |R5_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : ACP_RST_Pin */
@@ -1273,11 +1279,27 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(OTG_FS_OC_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : R3_Pin R6_Pin */
+  GPIO_InitStruct.Pin = R3_Pin|R6_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF9_LTDC;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /*Configure GPIO pin : BOOT1_Pin */
   GPIO_InitStruct.Pin = BOOT1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BOOT1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : G4_Pin G5_Pin B6_Pin B7_Pin */
+  GPIO_InitStruct.Pin = G4_Pin|G5_Pin|B6_Pin|B7_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : TE_Pin */
   GPIO_InitStruct.Pin = TE_Pin;
@@ -1292,6 +1314,38 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : R7_Pin DOTCLK_Pin B3_Pin */
+  GPIO_InitStruct.Pin = R7_Pin|DOTCLK_Pin|B3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : HSYNC_Pin G6_Pin R2_Pin */
+  GPIO_InitStruct.Pin = HSYNC_Pin|G6_Pin|R2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : G7_Pin B2_Pin */
+  GPIO_InitStruct.Pin = G7_Pin|B2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : G3_Pin B4_Pin */
+  GPIO_InitStruct.Pin = G3_Pin|B4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF9_LTDC;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
   /*Configure GPIO pins : LD3_Pin LD4_Pin */
   GPIO_InitStruct.Pin = LD3_Pin|LD4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -1303,6 +1357,58 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/**
+  * @brief  BSP_Background.
+  * @param  None
+  * @retval None
+  */
+void BSP_Background(void)
+{
+//  BSP_LED_Toggle(LED3);
+//  BSP_LED_Toggle(LED4);
+
+  /* Capture input event and update cursor */
+  if(GUI_Initialized == 1)
+  {
+    BSP_Pointer_Update();
+  }
+}
+
+/**
+  * @brief  Provide the GUI with current state of the touch screen
+  * @param  None
+  * @retval None
+  */
+void BSP_Pointer_Update(void)
+{
+  GUI_PID_STATE TS_State;
+  static TS_StateTypeDef prev_state;
+  TS_StateTypeDef  ts;
+  uint16_t xDiff, yDiff;
+
+  BSP_TS_GetState(&ts);
+
+  TS_State.Pressed = ts.TouchDetected;
+
+  xDiff = (prev_state.X > ts.X) ? (prev_state.X - ts.X) : (ts.X - prev_state.X);
+  yDiff = (prev_state.Y > ts.Y) ? (prev_state.Y - ts.Y) : (ts.Y - prev_state.Y);
+
+  if(ts.TouchDetected)
+  {
+    if((prev_state.TouchDetected != ts.TouchDetected )||
+       (xDiff > 3 )||
+         (yDiff > 3))
+    {
+      prev_state = ts;
+
+      TS_State.Layer = 0;
+      TS_State.x = ts.X;
+      TS_State.y = ts.Y;
+
+      GUI_TOUCH_StoreStateEx(&TS_State);
+    }
+  }
+}
 /* USER CODE END 4 */
 
  /**
@@ -1319,14 +1425,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if (htim->Instance == TIM2) {
 		HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin); // red led toggle
 	}
+
+	if (htim->Instance == TIM3) {
+		BSP_Background();
+	}
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM6) {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+  
   /* USER CODE END Callback 1 */
 }
+
 
 /**
   * @brief  This function is executed in case of error occurrence.

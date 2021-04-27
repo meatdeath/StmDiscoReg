@@ -144,100 +144,6 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
 }
 
 /**
-* @brief CRC MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hcrc: CRC handle pointer
-* @retval None
-*/
-void HAL_CRC_MspInit(CRC_HandleTypeDef* hcrc)
-{
-  if(hcrc->Instance==CRC)
-  {
-  /* USER CODE BEGIN CRC_MspInit 0 */
-
-  /* USER CODE END CRC_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_CRC_CLK_ENABLE();
-  /* USER CODE BEGIN CRC_MspInit 1 */
-
-  /* USER CODE END CRC_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief CRC MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hcrc: CRC handle pointer
-* @retval None
-*/
-void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc)
-{
-  if(hcrc->Instance==CRC)
-  {
-  /* USER CODE BEGIN CRC_MspDeInit 0 */
-
-  /* USER CODE END CRC_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_CRC_CLK_DISABLE();
-  /* USER CODE BEGIN CRC_MspDeInit 1 */
-
-  /* USER CODE END CRC_MspDeInit 1 */
-  }
-
-}
-
-/**
-* @brief DMA2D MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hdma2d: DMA2D handle pointer
-* @retval None
-*/
-void HAL_DMA2D_MspInit(DMA2D_HandleTypeDef* hdma2d)
-{
-  if(hdma2d->Instance==DMA2D)
-  {
-  /* USER CODE BEGIN DMA2D_MspInit 0 */
-
-  /* USER CODE END DMA2D_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_DMA2D_CLK_ENABLE();
-    /* DMA2D interrupt Init */
-    HAL_NVIC_SetPriority(DMA2D_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(DMA2D_IRQn);
-  /* USER CODE BEGIN DMA2D_MspInit 1 */
-
-  /* USER CODE END DMA2D_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief DMA2D MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hdma2d: DMA2D handle pointer
-* @retval None
-*/
-void HAL_DMA2D_MspDeInit(DMA2D_HandleTypeDef* hdma2d)
-{
-  if(hdma2d->Instance==DMA2D)
-  {
-  /* USER CODE BEGIN DMA2D_MspDeInit 0 */
-
-  /* USER CODE END DMA2D_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_DMA2D_CLK_DISABLE();
-
-    /* DMA2D interrupt DeInit */
-    HAL_NVIC_DisableIRQ(DMA2D_IRQn);
-  /* USER CODE BEGIN DMA2D_MspDeInit 1 */
-
-  /* USER CODE END DMA2D_MspDeInit 1 */
-  }
-
-}
-
-/**
 * @brief I2C MSP Initialization
 * This function configures the hardware resources used in this example
 * @param hi2c: I2C handle pointer
@@ -308,184 +214,6 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
   /* USER CODE BEGIN I2C3_MspDeInit 1 */
 
   /* USER CODE END I2C3_MspDeInit 1 */
-  }
-
-}
-
-/**
-* @brief LTDC MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hltdc: LTDC handle pointer
-* @retval None
-*/
-void HAL_LTDC_MspInit(LTDC_HandleTypeDef* hltdc)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(hltdc->Instance==LTDC)
-  {
-  /* USER CODE BEGIN LTDC_MspInit 0 */
-
-  /* USER CODE END LTDC_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_LTDC_CLK_ENABLE();
-
-    __HAL_RCC_GPIOF_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOG_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    __HAL_RCC_GPIOD_CLK_ENABLE();
-    /**LTDC GPIO Configuration
-    PF10     ------> LTDC_DE
-    PA3     ------> LTDC_B5
-    PA4     ------> LTDC_VSYNC
-    PA6     ------> LTDC_G2
-    PB0     ------> LTDC_R3
-    PB1     ------> LTDC_R6
-    PB10     ------> LTDC_G4
-    PB11     ------> LTDC_G5
-    PG6     ------> LTDC_R7
-    PG7     ------> LTDC_CLK
-    PC6     ------> LTDC_HSYNC
-    PC7     ------> LTDC_G6
-    PA11     ------> LTDC_R4
-    PA12     ------> LTDC_R5
-    PC10     ------> LTDC_R2
-    PD3     ------> LTDC_G7
-    PD6     ------> LTDC_B2
-    PG10     ------> LTDC_G3
-    PG11     ------> LTDC_B3
-    PG12     ------> LTDC_B4
-    PB8     ------> LTDC_B6
-    PB9     ------> LTDC_B7
-    */
-    GPIO_InitStruct.Pin = ENABLE_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
-    HAL_GPIO_Init(ENABLE_GPIO_Port, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = B5_Pin|VSYNC_Pin|G2_Pin|R4_Pin
-                          |R5_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = R3_Pin|R6_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF9_LTDC;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = G4_Pin|G5_Pin|B6_Pin|B7_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = R7_Pin|DOTCLK_Pin|B3_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = HSYNC_Pin|G6_Pin|R2_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = G7_Pin|B2_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = G3_Pin|B4_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF9_LTDC;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-
-    /* LTDC interrupt Init */
-    HAL_NVIC_SetPriority(LTDC_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(LTDC_IRQn);
-  /* USER CODE BEGIN LTDC_MspInit 1 */
-
-  /* USER CODE END LTDC_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief LTDC MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hltdc: LTDC handle pointer
-* @retval None
-*/
-void HAL_LTDC_MspDeInit(LTDC_HandleTypeDef* hltdc)
-{
-  if(hltdc->Instance==LTDC)
-  {
-  /* USER CODE BEGIN LTDC_MspDeInit 0 */
-
-  /* USER CODE END LTDC_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_LTDC_CLK_DISABLE();
-
-    /**LTDC GPIO Configuration
-    PF10     ------> LTDC_DE
-    PA3     ------> LTDC_B5
-    PA4     ------> LTDC_VSYNC
-    PA6     ------> LTDC_G2
-    PB0     ------> LTDC_R3
-    PB1     ------> LTDC_R6
-    PB10     ------> LTDC_G4
-    PB11     ------> LTDC_G5
-    PG6     ------> LTDC_R7
-    PG7     ------> LTDC_CLK
-    PC6     ------> LTDC_HSYNC
-    PC7     ------> LTDC_G6
-    PA11     ------> LTDC_R4
-    PA12     ------> LTDC_R5
-    PC10     ------> LTDC_R2
-    PD3     ------> LTDC_G7
-    PD6     ------> LTDC_B2
-    PG10     ------> LTDC_G3
-    PG11     ------> LTDC_B3
-    PG12     ------> LTDC_B4
-    PB8     ------> LTDC_B6
-    PB9     ------> LTDC_B7
-    */
-    HAL_GPIO_DeInit(ENABLE_GPIO_Port, ENABLE_Pin);
-
-    HAL_GPIO_DeInit(GPIOA, B5_Pin|VSYNC_Pin|G2_Pin|R4_Pin
-                          |R5_Pin);
-
-    HAL_GPIO_DeInit(GPIOB, R3_Pin|R6_Pin|G4_Pin|G5_Pin
-                          |B6_Pin|B7_Pin);
-
-    HAL_GPIO_DeInit(GPIOG, R7_Pin|DOTCLK_Pin|G3_Pin|B3_Pin
-                          |B4_Pin);
-
-    HAL_GPIO_DeInit(GPIOC, HSYNC_Pin|G6_Pin|R2_Pin);
-
-    HAL_GPIO_DeInit(GPIOD, G7_Pin|B2_Pin);
-
-    /* LTDC interrupt DeInit */
-    HAL_NVIC_DisableIRQ(LTDC_IRQn);
-  /* USER CODE BEGIN LTDC_MspDeInit 1 */
-
-  /* USER CODE END LTDC_MspDeInit 1 */
   }
 
 }
@@ -625,6 +353,19 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
     HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
   /* USER CODE BEGIN TIM2_MspInit 1 */
+  }
+
+  if(htim_base->Instance==TIM3)
+  {
+    /* TIMx Peripheral clock enable */
+    __HAL_RCC_TIM3_CLK_ENABLE();
+
+    /*##-2- Configure the NVIC for TIMx ########################################*/
+    /* Set the TIMx priority */
+    HAL_NVIC_SetPriority(TIM3_IRQn, 0, 1);
+
+    /* Enable the TIMx global Interrupt */
+    HAL_NVIC_EnableIRQ(TIM3_IRQn);
 
   /* USER CODE END TIM2_MspInit 1 */
   }

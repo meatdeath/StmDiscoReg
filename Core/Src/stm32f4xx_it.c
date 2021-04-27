@@ -43,6 +43,8 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
+extern volatile GUI_TIMER_TIME OS_TimeMS;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,9 +60,7 @@
 /* External variables --------------------------------------------------------*/
 extern HCD_HandleTypeDef hhcd_USB_OTG_HS;
 extern ADC_HandleTypeDef hadc1;
-extern DMA2D_HandleTypeDef hdma2d;
 extern SDRAM_HandleTypeDef hsdram1;
-extern LTDC_HandleTypeDef hltdc;
 extern SPI_HandleTypeDef hspi5;
 extern TIM_HandleTypeDef htim2;
 extern UART_HandleTypeDef huart1;
@@ -100,6 +100,7 @@ void HardFault_Handler(void)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
     /* USER CODE END W1_HardFault_IRQn 0 */
+	  HAL_Delay(1);
   }
 }
 
@@ -193,7 +194,7 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
+	OS_TimeMS++;
   /* USER CODE END SysTick_IRQn 0 */
 
   /* USER CODE BEGIN SysTick_IRQn 1 */
@@ -218,7 +219,7 @@ void ADC_IRQHandler(void)
   /* USER CODE END ADC_IRQn 0 */
   HAL_ADC_IRQHandler(&hadc1);
   /* USER CODE BEGIN ADC_IRQn 1 */
-  uint16_t value = HAL_ADC_GetValue(&hadc1);
+
   /* USER CODE END ADC_IRQn 1 */
 }
 
@@ -305,35 +306,33 @@ void SPI5_IRQHandler(void)
   /* USER CODE END SPI5_IRQn 1 */
 }
 
+/* USER CODE BEGIN 1 */
+//void WWDG_IRQHandler(void)
+//{
+//}
+//void USART6_IRQHandler(void)
+//{
+//}
 /**
-  * @brief This function handles LTDC global interrupt.
+  * @brief  This function handles LTDC global interrupt request.
+  * @param  None
+  * @retval None
   */
+
+extern LTDC_HandleTypeDef hltdc;
 void LTDC_IRQHandler(void)
 {
-  /* USER CODE BEGIN LTDC_IRQn 0 */
-
-  /* USER CODE END LTDC_IRQn 0 */
   HAL_LTDC_IRQHandler(&hltdc);
-  /* USER CODE BEGIN LTDC_IRQn 1 */
-
-  /* USER CODE END LTDC_IRQn 1 */
 }
-
 /**
-  * @brief This function handles DMA2D global interrupt.
+  * @brief  This function handles TIM interrupt request.
+  * @param  None
+  * @retval None
   */
-void DMA2D_IRQHandler(void)
+extern TIM_HandleTypeDef htim3;
+void TIM3_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA2D_IRQn 0 */
-
-  /* USER CODE END DMA2D_IRQn 0 */
-  HAL_DMA2D_IRQHandler(&hdma2d);
-  /* USER CODE BEGIN DMA2D_IRQn 1 */
-
-  /* USER CODE END DMA2D_IRQn 1 */
+  HAL_TIM_IRQHandler(&htim3);
 }
-
-/* USER CODE BEGIN 1 */
-
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
