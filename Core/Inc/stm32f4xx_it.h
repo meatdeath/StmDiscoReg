@@ -63,6 +63,8 @@ void FMC_IRQHandler(void);
 void TIM6_DAC_IRQHandler(void);
 void OTG_HS_IRQHandler(void);
 void SPI5_IRQHandler(void);
+void LTDC_IRQHandler(void);
+void DMA2D_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 void WWDG_IRQHandler(void);
 void USART6_IRQHandler(void);

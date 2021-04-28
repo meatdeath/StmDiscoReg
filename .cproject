@@ -199,19 +199,19 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="Src/font_app.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-                        						
-                        <entry excluding="BSP/Components/n25q128a|BSP/Components/mfxstm32l152|BSP/Components/lsm303dlhc|BSP/Components/lsm303agr|BSP/Components/ls016b8uy|BSP/Components/lis3dsh|BSP/Components/lis302dl|BSP/Components/ili9325|BSP/Components/i3g4250d|BSP/Components/ft6x06|BSP/Components/exc7200|BSP/Components/cs43l22|BSP/Components/ampire640480|BSP/Components/ampire480272|BSP/Components/n25q256a|BSP/Components/n25q512a|BSP/Components/nt35510|BSP/Components/otm8009a|BSP/Components/ov2640|BSP/Components/ov5640|BSP/Components/s25fl512s|BSP/Components/s5k5cag|BSP/Components/st7735|BSP/Components/st7789h2|BSP/Components/stmpe1600|BSP/Components/ts3510|BSP/Components/wm8994" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-                        						
-                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
-                        						
                         <entry excluding="STemWin/App|STemWin/Config|STemWin/OS/GUI_X_OS.c|STemWin/Simulation|STemWin/Software" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
                         						
                         <entry excluding="font_app.c|generated" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares/STemWin/App"/>
                         						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="TouchGFX"/>
                         						
+                        <entry excluding="BSP/Components/n25q128a|BSP/Components/mfxstm32l152|BSP/Components/lsm303dlhc|BSP/Components/lsm303agr|BSP/Components/ls016b8uy|BSP/Components/lis3dsh|BSP/Components/lis302dl|BSP/Components/ili9325|BSP/Components/i3g4250d|BSP/Components/ft6x06|BSP/Components/exc7200|BSP/Components/cs43l22|BSP/Components/ampire640480|BSP/Components/ampire480272|BSP/Components/n25q256a|BSP/Components/n25q512a|BSP/Components/nt35510|BSP/Components/otm8009a|BSP/Components/ov2640|BSP/Components/ov5640|BSP/Components/s25fl512s|BSP/Components/s5k5cag|BSP/Components/st7735|BSP/Components/st7789h2|BSP/Components/stmpe1600|BSP/Components/ts3510|BSP/Components/wm8994" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+                        						
+                        <entry excluding="Src/font_app.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+                        						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB_HOST"/>
+                        						
+                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
                         					
                     </sourceEntries>
                     				

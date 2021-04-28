@@ -82,7 +82,8 @@
 #define BK_COLOR GUI_DARKBLUE
 
 static volatile char       TransferInProgress  = 0;
-void DMA2D_IRQHandler(void);
+//void DMA2D_IRQHandler(void);
+void DMA2D_XferCpltCallback(DMA2D_HandleTypeDef *hdma2d);
 
 
 /* Choose Layer 0 color conversion depending of the color mode choosed */
@@ -404,163 +405,163 @@ static U32 _GetPixelformat(int LayerIndex)
   while (1);
 }
 
-
-/**
-  * @brief  Enable/Disable the DMA2D interrupt
-  * @param  DMA2D_IT: DM2D interrupt to enable
-  * @param  NewState: ENABLE/DISABLE
-  * @retval LTDC pixel format
-  */
-static void _DMA2D_ITConfig(U32 DMA2D_IT, int NewState) {
-  if (NewState != DISABLE) {    
-    DMA2D->CR |= DMA2D_IT;    
-  } else {    
-    DMA2D->CR &= (U32)~DMA2D_IT;    
-  }
-}
-
-/**
-  * @brief  DM2D Msp initialisation
-  * @param  hdma2d: DM2D handle
-  * @retval None
-  */
-void HAL_DMA2D_MspInit(DMA2D_HandleTypeDef *hdma2d)
-{  
-  /* Enable dma2d clock */
-  __HAL_RCC_DMA2D_CLK_ENABLE();   
-}
-
-/**
-  * @brief  DM2D Msp de-initialisation
-  * @param  hdma2d: DM2D handle
-  * @retval None
-  */
-void HAL_DMA2D_MspDeInit(DMA2D_HandleTypeDef *hdma2d)
-{
-  /* Enable DMA2D reset state */
-  __HAL_RCC_DMA2D_FORCE_RESET();
-  
-  /* Release DMA2D from reset state */ 
-  __HAL_RCC_DMA2D_RELEASE_RESET();
-}
-
-/**
-  * @brief  LTDC Msp initialisation
-  * @param  hltdc: LTDC handle
-  * @retval None
-  */
-void HAL_LTDC_MspInit(LTDC_HandleTypeDef *hltdc)
-{
-  GPIO_InitTypeDef GPIO_Init_Structure;
-  
-  /* Enable peripherals and GPIO Clocks */  
-  /* Enable the LTDC Clock */
-  __HAL_RCC_LTDC_CLK_ENABLE();
-  
-  /* Enable GPIO Clock */
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOF_CLK_ENABLE();
-  __HAL_RCC_GPIOG_CLK_ENABLE();
-  
-  /* Configure peripheral GPIO */
-
-  /* GPIOs Configuration */
-  /*
-   +------------------------+-----------------------+----------------------------+
-   +                       LCD pins assignment                                   +
-   +------------------------+-----------------------+----------------------------+
-   |  LCD_TFT R2 <-> PC.10  |  LCD_TFT G2 <-> PA.06 |  LCD_TFT B2 <-> PD.06      |
-   |  LCD_TFT R3 <-> PB.00  |  LCD_TFT G3 <-> PG.10 |  LCD_TFT B3 <-> PG.11      |
-   |  LCD_TFT R4 <-> PA.11  |  LCD_TFT G4 <-> PB.10 |  LCD_TFT B4 <-> PG.12      |
-   |  LCD_TFT R5 <-> PA.12  |  LCD_TFT G5 <-> PB.11 |  LCD_TFT B5 <-> PA.03      |
-   |  LCD_TFT R6 <-> PB.01  |  LCD_TFT G6 <-> PC.07 |  LCD_TFT B6 <-> PB.08      |
-   |  LCD_TFT R7 <-> PG.06  |  LCD_TFT G7 <-> PD.03 |  LCD_TFT B7 <-> PB.09      |
-   -------------------------------------------------------------------------------
-            |  LCD_TFT HSYNC <-> PC.06  | LCDTFT VSYNC <->  PA.04 |
-            |  LCD_TFT CLK   <-> PG.07  | LCD_TFT DE   <->  PF.10 |
-             -----------------------------------------------------
-  */
-
-  /* GPIOA configuration */
-
-  /*Configure GPIO pins : B1_Pin*/
-  GPIO_Init_Structure.Pin = B1_Pin;
-  GPIO_Init_Structure.Mode = GPIO_MODE_EVT_RISING;
-  GPIO_Init_Structure.Pull = GPIO_NOPULL;
-  GPIO_Init_Structure.Speed = GPIO_SPEED_FAST;
-  HAL_GPIO_Init(GPIOA, &GPIO_Init_Structure);
-
-  GPIO_Init_Structure.Pin = GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_6 |
-                           GPIO_PIN_11 | GPIO_PIN_12;
-  GPIO_Init_Structure.Mode = GPIO_MODE_AF_PP;
-  GPIO_Init_Structure.Pull = GPIO_NOPULL;
-  GPIO_Init_Structure.Speed = GPIO_SPEED_FAST;
-  GPIO_Init_Structure.Alternate= GPIO_AF14_LTDC;
-  HAL_GPIO_Init(GPIOA, &GPIO_Init_Structure);
-
- /* GPIOB configuration */
-  GPIO_Init_Structure.Pin = GPIO_PIN_8 | \
-                           GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11;
-  HAL_GPIO_Init(GPIOB, &GPIO_Init_Structure);
-
-
-
- /* GPIOC configuration */
-  GPIO_Init_Structure.Pin = GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_10;
-  HAL_GPIO_Init(GPIOC, &GPIO_Init_Structure);
-
- /* GPIOD configuration */
-  GPIO_Init_Structure.Pin = GPIO_PIN_3 | GPIO_PIN_6;
-  HAL_GPIO_Init(GPIOD, &GPIO_Init_Structure);
-  
- /* GPIOF configuration */
-  GPIO_Init_Structure.Pin = GPIO_PIN_10;
-  HAL_GPIO_Init(GPIOF, &GPIO_Init_Structure);     
-
- /* GPIOG configuration */  
-  GPIO_Init_Structure.Pin = GPIO_PIN_6 | GPIO_PIN_7 | \
-                           GPIO_PIN_11;
-  HAL_GPIO_Init(GPIOG, &GPIO_Init_Structure);
- 
-  /* GPIOB configuration */  
-  GPIO_Init_Structure.Pin = GPIO_PIN_0 | GPIO_PIN_1;
-  GPIO_Init_Structure.Alternate= GPIO_AF9_LTDC;
-  HAL_GPIO_Init(GPIOB, &GPIO_Init_Structure);
-
-  /* GPIOG configuration */  
-  GPIO_Init_Structure.Pin = GPIO_PIN_10 | GPIO_PIN_12;
-  HAL_GPIO_Init(GPIOG, &GPIO_Init_Structure);
-
-  /* Set LTDC Interrupt to the lowest priority */
-  HAL_NVIC_SetPriority(LTDC_IRQn, 0xF, 0);
-  
-  /* Enable LTDC Interrupt */
-  HAL_NVIC_EnableIRQ(LTDC_IRQn);
-  
-  /* Set DMA2D Interrupt to the lowest priority */
-  HAL_NVIC_SetPriority(DMA2D_IRQn, 0xE, 0x0);
-  /* Enable DMA2D Interrupt */
-  HAL_NVIC_EnableIRQ(DMA2D_IRQn);
-  /* Enable DMA2D transfer complete Interrupt */
-  _DMA2D_ITConfig(DMA2D_CR_TCIE, ENABLE);
-}
-
-/**
-  * @brief  LTDC Msp de-initialisation
-  * @param  hltdc: LTDC handle
-  * @retval None
-  */
-void HAL_LTDC_MspDeInit(LTDC_HandleTypeDef *hltdc)
-{
-  /* Enable LTDC reset state */
-  __HAL_RCC_LTDC_FORCE_RESET();
-  
-  /* Release LTDC from reset state */ 
-  __HAL_RCC_LTDC_RELEASE_RESET();
-}
+//
+///**
+//  * @brief  Enable/Disable the DMA2D interrupt
+//  * @param  DMA2D_IT: DM2D interrupt to enable
+//  * @param  NewState: ENABLE/DISABLE
+//  * @retval LTDC pixel format
+//  */
+//static void _DMA2D_ITConfig(U32 DMA2D_IT, int NewState) {
+//  if (NewState != DISABLE) {
+//    DMA2D->CR |= DMA2D_IT;
+//  } else {
+//    DMA2D->CR &= (U32)~DMA2D_IT;
+//  }
+//}
+//
+///**
+//  * @brief  DM2D Msp initialisation
+//  * @param  hdma2d: DM2D handle
+//  * @retval None
+//  */
+//void HAL_DMA2D_MspInit(DMA2D_HandleTypeDef *hdma2d)
+//{
+//  /* Enable dma2d clock */
+//  __HAL_RCC_DMA2D_CLK_ENABLE();
+//}
+//
+///**
+//  * @brief  DM2D Msp de-initialisation
+//  * @param  hdma2d: DM2D handle
+//  * @retval None
+//  */
+//void HAL_DMA2D_MspDeInit(DMA2D_HandleTypeDef *hdma2d)
+//{
+//  /* Enable DMA2D reset state */
+//  __HAL_RCC_DMA2D_FORCE_RESET();
+//
+//  /* Release DMA2D from reset state */
+//  __HAL_RCC_DMA2D_RELEASE_RESET();
+//}
+//
+///**
+//  * @brief  LTDC Msp initialisation
+//  * @param  hltdc: LTDC handle
+//  * @retval None
+//  */
+//void HAL_LTDC_MspInit(LTDC_HandleTypeDef *hltdc)
+//{
+//  GPIO_InitTypeDef GPIO_Init_Structure;
+//
+//  /* Enable peripherals and GPIO Clocks */
+//  /* Enable the LTDC Clock */
+//  __HAL_RCC_LTDC_CLK_ENABLE();
+//
+//  /* Enable GPIO Clock */
+//  __HAL_RCC_GPIOA_CLK_ENABLE();
+//  __HAL_RCC_GPIOB_CLK_ENABLE();
+//  __HAL_RCC_GPIOC_CLK_ENABLE();
+//  __HAL_RCC_GPIOD_CLK_ENABLE();
+//  __HAL_RCC_GPIOF_CLK_ENABLE();
+//  __HAL_RCC_GPIOG_CLK_ENABLE();
+//
+//  /* Configure peripheral GPIO */
+//
+//  /* GPIOs Configuration */
+//  /*
+//   +------------------------+-----------------------+----------------------------+
+//   +                       LCD pins assignment                                   +
+//   +------------------------+-----------------------+----------------------------+
+//   |  LCD_TFT R2 <-> PC.10  |  LCD_TFT G2 <-> PA.06 |  LCD_TFT B2 <-> PD.06      |
+//   |  LCD_TFT R3 <-> PB.00  |  LCD_TFT G3 <-> PG.10 |  LCD_TFT B3 <-> PG.11      |
+//   |  LCD_TFT R4 <-> PA.11  |  LCD_TFT G4 <-> PB.10 |  LCD_TFT B4 <-> PG.12      |
+//   |  LCD_TFT R5 <-> PA.12  |  LCD_TFT G5 <-> PB.11 |  LCD_TFT B5 <-> PA.03      |
+//   |  LCD_TFT R6 <-> PB.01  |  LCD_TFT G6 <-> PC.07 |  LCD_TFT B6 <-> PB.08      |
+//   |  LCD_TFT R7 <-> PG.06  |  LCD_TFT G7 <-> PD.03 |  LCD_TFT B7 <-> PB.09      |
+//   -------------------------------------------------------------------------------
+//            |  LCD_TFT HSYNC <-> PC.06  | LCDTFT VSYNC <->  PA.04 |
+//            |  LCD_TFT CLK   <-> PG.07  | LCD_TFT DE   <->  PF.10 |
+//             -----------------------------------------------------
+//  */
+//
+//  /* GPIOA configuration */
+//
+//  /*Configure GPIO pins : B1_Pin*/
+//  GPIO_Init_Structure.Pin = B1_Pin;
+//  GPIO_Init_Structure.Mode = GPIO_MODE_EVT_RISING;
+//  GPIO_Init_Structure.Pull = GPIO_NOPULL;
+//  GPIO_Init_Structure.Speed = GPIO_SPEED_FAST;
+//  HAL_GPIO_Init(GPIOA, &GPIO_Init_Structure);
+//
+//  GPIO_Init_Structure.Pin = GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_6 |
+//                           GPIO_PIN_11 | GPIO_PIN_12;
+//  GPIO_Init_Structure.Mode = GPIO_MODE_AF_PP;
+//  GPIO_Init_Structure.Pull = GPIO_NOPULL;
+//  GPIO_Init_Structure.Speed = GPIO_SPEED_FAST;
+//  GPIO_Init_Structure.Alternate= GPIO_AF14_LTDC;
+//  HAL_GPIO_Init(GPIOA, &GPIO_Init_Structure);
+//
+// /* GPIOB configuration */
+//  GPIO_Init_Structure.Pin = GPIO_PIN_8 | \
+//                           GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11;
+//  HAL_GPIO_Init(GPIOB, &GPIO_Init_Structure);
+//
+//
+//
+// /* GPIOC configuration */
+//  GPIO_Init_Structure.Pin = GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_10;
+//  HAL_GPIO_Init(GPIOC, &GPIO_Init_Structure);
+//
+// /* GPIOD configuration */
+//  GPIO_Init_Structure.Pin = GPIO_PIN_3 | GPIO_PIN_6;
+//  HAL_GPIO_Init(GPIOD, &GPIO_Init_Structure);
+//
+// /* GPIOF configuration */
+//  GPIO_Init_Structure.Pin = GPIO_PIN_10;
+//  HAL_GPIO_Init(GPIOF, &GPIO_Init_Structure);
+//
+// /* GPIOG configuration */
+//  GPIO_Init_Structure.Pin = GPIO_PIN_6 | GPIO_PIN_7 | \
+//                           GPIO_PIN_11;
+//  HAL_GPIO_Init(GPIOG, &GPIO_Init_Structure);
+//
+//  /* GPIOB configuration */
+//  GPIO_Init_Structure.Pin = GPIO_PIN_0 | GPIO_PIN_1;
+//  GPIO_Init_Structure.Alternate= GPIO_AF9_LTDC;
+//  HAL_GPIO_Init(GPIOB, &GPIO_Init_Structure);
+//
+//  /* GPIOG configuration */
+//  GPIO_Init_Structure.Pin = GPIO_PIN_10 | GPIO_PIN_12;
+//  HAL_GPIO_Init(GPIOG, &GPIO_Init_Structure);
+//
+//  /* Set LTDC Interrupt to the lowest priority */
+//  HAL_NVIC_SetPriority(LTDC_IRQn, 0xF, 0);
+//
+//  /* Enable LTDC Interrupt */
+//  HAL_NVIC_EnableIRQ(LTDC_IRQn);
+//
+//  /* Set DMA2D Interrupt to the lowest priority */
+//  HAL_NVIC_SetPriority(DMA2D_IRQn, 0xE, 0x0);
+//  /* Enable DMA2D Interrupt */
+//  HAL_NVIC_EnableIRQ(DMA2D_IRQn);
+//  /* Enable DMA2D transfer complete Interrupt */
+//  _DMA2D_ITConfig(DMA2D_CR_TCIE, ENABLE);
+//}
+//
+///**
+//  * @brief  LTDC Msp de-initialisation
+//  * @param  hltdc: LTDC handle
+//  * @retval None
+//  */
+//void HAL_LTDC_MspDeInit(LTDC_HandleTypeDef *hltdc)
+//{
+//  /* Enable LTDC reset state */
+//  __HAL_RCC_LTDC_FORCE_RESET();
+//
+//  /* Release LTDC from reset state */
+//  __HAL_RCC_LTDC_RELEASE_RESET();
+//}
 
 /**
   * @brief  Initialise the LCD Controller
@@ -674,24 +675,41 @@ static void LCD_LL_Init(void)
 
   hdma2d.Instance          = DMA2D; 
 
+  hdma2d.XferCpltCallback = DMA2D_XferCpltCallback;
+
   if(HAL_DMA2D_Init(&hdma2d) != HAL_OK)
   {
     while (1);
   }
 }
 
-/**
-  * @brief  DMA2D interrupt handler
-  * @param  None
-  * @retval None
-  */
-void DMA2D_IRQHandler(void)
-{
-  /* Clear the Transfer complete interrupt */
-  DMA2D->IFCR = (U32)DMA2D_IFSR_CTCIF;
-  DMA2D->IFCR = (U32)DMA2D_IFCR_CCTCIF;
-  /* Release the DMA2D for the next transfer */
-  TransferInProgress = 0;
+///**
+//  * @brief  DMA2D interrupt handler
+//  * @param  None
+//  * @retval None
+//  */
+//void DMA2D_IRQHandler(void)
+//{
+//  /* Clear the Transfer complete interrupt */
+//  DMA2D->IFCR = (U32)DMA2D_IFSR_CTCIF;
+//  DMA2D->IFCR = (U32)DMA2D_IFCR_CCTCIF;
+//  /* Release the DMA2D for the next transfer */
+//  TransferInProgress = 0;
+//}
+
+//void HAL_DMA2D_LineEventCallback(DMA2D_HandleTypeDef *hdma2d) {
+//	  /* Clear the Transfer complete interrupt */
+//	  DMA2D->IFCR = (U32)DMA2D_IFSR_CTCIF;
+//	  DMA2D->IFCR = (U32)DMA2D_IFCR_CCTCIF;
+//	  /* Release the DMA2D for the next transfer */
+//	  TransferInProgress = 0;
+//}
+void DMA2D_XferCpltCallback(DMA2D_HandleTypeDef *hdma2d) {
+	  /* Clear the Transfer complete interrupt */
+	  DMA2D->IFCR = (U32)DMA2D_IFSR_CTCIF;
+	  DMA2D->IFCR = (U32)DMA2D_IFCR_CCTCIF;
+	  /* Release the DMA2D for the next transfer */
+	  TransferInProgress = 0;
 }
 
 
