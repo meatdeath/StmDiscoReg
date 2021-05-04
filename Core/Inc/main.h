@@ -95,6 +95,8 @@ void Error_Handler(void);
 #define NCS_MEMS_SPI_GPIO_Port GPIOC
 #define CSX_Pin GPIO_PIN_2
 #define CSX_GPIO_Port GPIOC
+#define REC_START_Pin GPIO_PIN_3
+#define REC_START_GPIO_Port GPIOC
 #define B1_Pin GPIO_PIN_0
 #define B1_GPIO_Port GPIOA
 #define MEMS_INT1_Pin GPIO_PIN_1
@@ -246,13 +248,19 @@ void Error_Handler(void);
 #define NBL1_Pin GPIO_PIN_1
 #define NBL1_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
-#define LD3_OFF()	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET)
-#define LD3_ON()	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET)
-#define LD3_TOGGLE()	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin)
-#define LD4_OFF()	HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET)
-#define LD4_ON()	HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET)
-#define LD4_TOGGLE()	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin)
-#define B1_STATE()	HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)
+// PG13
+#define LD3_OFF()			HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET)
+#define LD3_ON()			HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET)
+#define LD3_TOGGLE()		HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin)
+#define GREEN_LED_TOGGLE()	LD3_TOGGLE()
+// PG14
+#define LD4_OFF()			HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET)
+#define LD4_ON()			HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET)
+#define LD4_TOGGLE()		HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin)
+#define RED_LED_TOGGLE()	LD4_TOGGLE()
+// PA0
+#define B1_STATE()			HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)
+#define REC_START_STATE()	HAL_GPIO_ReadPin(REC_START_GPIO_Port, REC_START_Pin)
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
