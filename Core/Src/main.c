@@ -45,8 +45,6 @@
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
-
-
 /* USER CODE BEGIN PM */
 // Events
 #define EVT_VOLTAGE_FAIL	(1<<0)
@@ -842,7 +840,7 @@ int main(void)
 		PrintADCValues();
 //		if(events&EVT_VOLTAGE_FAIL) {
 //			events &= ~EVT_VOLTAGE_FAIL;
-		if (B1_STATE() == GPIO_PIN_SET) {
+		if (B1_STATE() == GPIO_PIN_SET || REC_START_STATE() == GPIO_PIN_RESET ) {
 			HAL_TIM_Base_Stop(&htim2);
 
 			HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
@@ -1349,6 +1347,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : REC_START_Pin */
+  GPIO_InitStruct.Pin = REC_START_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(REC_START_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : B1_Pin MEMS_INT1_Pin MEMS_INT2_Pin TP_INT1_Pin */
   GPIO_InitStruct.Pin = B1_Pin|MEMS_INT1_Pin|MEMS_INT2_Pin|TP_INT1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
@@ -1540,7 +1544,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   
   /* USER CODE END Callback 1 */
 }
-
 
 /**
   * @brief  This function is executed in case of error occurrence.

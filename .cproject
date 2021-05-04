@@ -199,19 +199,19 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="Src/font_app.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-                        						
-                        <entry excluding="BSP/Components/n25q128a|BSP/Components/mfxstm32l152|BSP/Components/lsm303dlhc|BSP/Components/lsm303agr|BSP/Components/ls016b8uy|BSP/Components/lis3dsh|BSP/Components/lis302dl|BSP/Components/ili9325|BSP/Components/i3g4250d|BSP/Components/ft6x06|BSP/Components/exc7200|BSP/Components/cs43l22|BSP/Components/ampire640480|BSP/Components/ampire480272|BSP/Components/n25q256a|BSP/Components/n25q512a|BSP/Components/nt35510|BSP/Components/otm8009a|BSP/Components/ov2640|BSP/Components/ov5640|BSP/Components/s25fl512s|BSP/Components/s5k5cag|BSP/Components/st7735|BSP/Components/st7789h2|BSP/Components/stmpe1600|BSP/Components/ts3510|BSP/Components/wm8994" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-                        						
-                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
-                        						
                         <entry excluding="STemWin/App|STemWin/Config|STemWin/OS/GUI_X_OS.c|STemWin/Simulation|STemWin/Software" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
                         						
                         <entry excluding="FramewinDLG.c|font_app.c|generated" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares/STemWin/App"/>
                         						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="TouchGFX"/>
                         						
+                        <entry excluding="BSP/Components/n25q128a|BSP/Components/mfxstm32l152|BSP/Components/lsm303dlhc|BSP/Components/lsm303agr|BSP/Components/ls016b8uy|BSP/Components/lis3dsh|BSP/Components/lis302dl|BSP/Components/ili9325|BSP/Components/i3g4250d|BSP/Components/ft6x06|BSP/Components/exc7200|BSP/Components/cs43l22|BSP/Components/ampire640480|BSP/Components/ampire480272|BSP/Components/n25q256a|BSP/Components/n25q512a|BSP/Components/nt35510|BSP/Components/otm8009a|BSP/Components/ov2640|BSP/Components/ov5640|BSP/Components/s25fl512s|BSP/Components/s5k5cag|BSP/Components/st7735|BSP/Components/st7789h2|BSP/Components/stmpe1600|BSP/Components/ts3510|BSP/Components/wm8994" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+                        						
+                        <entry excluding="Src/font_app.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+                        						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB_HOST"/>
+                        						
+                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
                         					
                     </sourceEntries>
                     				
@@ -467,7 +467,7 @@
                             							
                             <option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.target_board.1492508782" name="Board" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.target_board" useByScannerDiscovery="false" value="STM32F429I-DISC1" valueType="string"/>
                             							
-                            <option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults.28019688" name="Defaults" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults" useByScannerDiscovery="false" value="com.st.stm32cube.ide.common.services.build.inputs.revA.1.0.4 || Debug || true || Executable || com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace || STM32F429I-DISC1 || 0 || 0 || arm-none-eabi- || ${gnu_tools_for_stm32_compiler_path} || ../FATFS/App | ../USB_HOST/App | ../Drivers/CMSIS/Include | ../Drivers/STM32F4xx_HAL_Driver/Inc | ../Core/Inc | ../Drivers/CMSIS/Device/ST/STM32F4xx/Include | ../FATFS/Target | ../USB_HOST/Target | ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy | ../Middlewares/Third_Party/FatFs/src | ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc | ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc ||  ||  || USE_HAL_DRIVER | STM32F429xx ||  || Drivers | USB_HOST | TouchGFX | Core/Startup | Middlewares | Core | FATFS ||  ||  || ${workspace_loc:/${ProjName}/STM32F429ZITX_FLASH.ld} || true || NonSecure ||  || secure_nsclib.o ||  || None" valueType="string"/>
+                            <option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults.28019688" name="Defaults" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults" useByScannerDiscovery="false" value="com.st.stm32cube.ide.common.services.build.inputs.revA.1.0.4 || DebugGui || true || Executable || com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace || STM32F429I-DISC1 || 0 || 0 || arm-none-eabi- || ${gnu_tools_for_stm32_compiler_path} || ../FATFS/App | ../USB_HOST/App | ../Drivers/CMSIS/Include | ../Drivers/STM32F4xx_HAL_Driver/Inc | ../Core/Inc | ../Drivers/CMSIS/Device/ST/STM32F4xx/Include | ../FATFS/Target | ../USB_HOST/Target | ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy | ../Middlewares/Third_Party/FatFs/src | ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc | ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc ||  ||  || USE_HAL_DRIVER | STM32F429xx ||  || Drivers | USB_HOST | TouchGFX | Core/Startup | Middlewares | Core | FATFS ||  ||  || ${workspace_loc:/${ProjName}/STM32F429ZITX_FLASH.ld} || true || NonSecure ||  || secure_nsclib.o ||  || None" valueType="string"/>
                             							
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.targetplatform.98908915" isAbstract="false" osList="all" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.targetplatform"/>
                             							
@@ -625,19 +625,19 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="Src/font_app.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-                        						
-                        <entry excluding="BSP/Components/n25q128a|BSP/Components/mfxstm32l152|BSP/Components/lsm303dlhc|BSP/Components/lsm303agr|BSP/Components/ls016b8uy|BSP/Components/lis3dsh|BSP/Components/lis302dl|BSP/Components/ili9325|BSP/Components/i3g4250d|BSP/Components/ft6x06|BSP/Components/exc7200|BSP/Components/cs43l22|BSP/Components/ampire640480|BSP/Components/ampire480272|BSP/Components/n25q256a|BSP/Components/n25q512a|BSP/Components/nt35510|BSP/Components/otm8009a|BSP/Components/ov2640|BSP/Components/ov5640|BSP/Components/s25fl512s|BSP/Components/s5k5cag|BSP/Components/st7735|BSP/Components/st7789h2|BSP/Components/stmpe1600|BSP/Components/ts3510|BSP/Components/wm8994" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-                        						
-                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
-                        						
                         <entry excluding="STemWin/App|STemWin/Config|STemWin/OS/GUI_X_OS.c|STemWin/Simulation|STemWin/Software" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
                         						
                         <entry excluding="font_app.c|generated" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares/STemWin/App"/>
                         						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="TouchGFX"/>
                         						
+                        <entry excluding="BSP/Components/n25q128a|BSP/Components/mfxstm32l152|BSP/Components/lsm303dlhc|BSP/Components/lsm303agr|BSP/Components/ls016b8uy|BSP/Components/lis3dsh|BSP/Components/lis302dl|BSP/Components/ili9325|BSP/Components/i3g4250d|BSP/Components/ft6x06|BSP/Components/exc7200|BSP/Components/cs43l22|BSP/Components/ampire640480|BSP/Components/ampire480272|BSP/Components/n25q256a|BSP/Components/n25q512a|BSP/Components/nt35510|BSP/Components/otm8009a|BSP/Components/ov2640|BSP/Components/ov5640|BSP/Components/s25fl512s|BSP/Components/s5k5cag|BSP/Components/st7735|BSP/Components/st7789h2|BSP/Components/stmpe1600|BSP/Components/ts3510|BSP/Components/wm8994" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+                        						
+                        <entry excluding="Src/font_app.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+                        						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB_HOST"/>
+                        						
+                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
                         					
                     </sourceEntries>
                     				
