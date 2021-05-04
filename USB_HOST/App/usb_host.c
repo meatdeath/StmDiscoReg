@@ -38,6 +38,7 @@
 /* Private function prototypes -----------------------------------------------*/
 extern void USB_OnAttach(void);
 extern void USB_OnDetach(void);
+extern void USB_Connecting(void);
 /* USER CODE END PFP */
 
 /* USB Host core handle declaration */
@@ -122,6 +123,7 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
 
   case HOST_USER_CONNECTION:
   Appli_state = APPLICATION_START;
+  USB_Connecting();
   break;
 
   default:

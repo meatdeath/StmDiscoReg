@@ -29,6 +29,10 @@
 #include <stdarg.h> //for va_list var arg functions
 #include "time.h"
 #include "WM.h"
+
+#ifdef GUI_SUPPORT
+#include "FramewinDLG.h"
+#endif
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,9 +45,47 @@
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
+
+
 /* USER CODE BEGIN PM */
+// Events
+#define EVT_VOLTAGE_FAIL	(1<<0)
+#define EVT_USB_ATTACH		(1<<1)
+#define EVT_USB_ATTACHED	(1<<2)
+#define EVT_USB_DETACH		(1<<3)
+#define EVT_USB_CONNECTING	(1<<4)
+
+
+#define C3_Pin GPIO_PIN_3
+#define C3_GPIO_Port GPIOC
+
+#define C3_STATE()	HAL_GPIO_ReadPin(C3_GPIO_Port, C3_Pin)
+
+// ADC, RAM & Display timer
+#define SDRAM_BANK_ADDR     ((uint32_t)0xD0000000)
+#define WRITE_READ_ADDR     ((uint32_t)0x100000) //((uint32_t)0x0800)
+
+#define ADC_AVG_SIZE	16
+
+#define STORE_SECONDS	30
+#define STORE_FREQUENCY	10000
+#define SDRAM_BUF_SIZE	(STORE_FREQUENCY*STORE_SECONDS)
+
+#define HIGH_CURRENT_ALERT_THRESHOLD	2000
+#define LOW_CURRENT_ALERT_THRESHOLD		-2000
+
+#define DISP_BUF_SIZE	50
+#define DISP_TIMER_PERIOD	1000	//20s = 200px
+//#define DISP_TIMER_PERIOD	100		//2s = 200px
+
+
+
+#ifdef USB_BENCHMARK
 #define USB_BUF_SIZE		200
+#endif
+#ifdef DMAADC
 #define ADC_DMA_BUF_SIZE	16
+#endif
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -62,41 +104,44 @@ UART_HandleTypeDef huart1;
 SDRAM_HandleTypeDef hsdram1;
 
 /* USER CODE BEGIN PV */
-// ---------------------------------------------------- LCD --------------------
 
-uint8_t GUI_Initialized = 0;
+// Events
+volatile uint8_t events = 0;
 
+// LCD
 TIM_HandleTypeDef htim3;
 uint32_t uwPrescalerValue = 0;
+uint8_t GUI_Initialized = 0;
 
-//----------------------------------------------------- RTC ----------------------
+// RTC
 RTC_TimeTypeDef sTime;
 RTC_DateTypeDef sDate;
 
-// --------------------------------------------------- USB vars ------------------------
+// USB
+#ifdef USB_BENCHMARK
 uint8_t usb_buf[USB_BUF_SIZE] = {0};
+#endif
 FATFS USBDISKFatFs;           /* File system object for USB disk logical drive */
 FIL MyFile;                   /* File object */
 char USBDISKPath[4];          /* USB Host logical drive path */
 USBH_HandleTypeDef hUSB_Host; /* USB Host handle */
 
+// ADC, RAM & Display Timer
+#ifdef DMAADC
 WORD adc_dma_buf[ADC_DMA_BUF_SIZE];
+#endif
 
-
-
-extern WM_HWIN CreateFramewin(void);
-extern void MainTaskFonts(void);
-extern void CreateDialog(void);
-extern void DialogProcess(void);
-extern void UpdateVoltageEdit(int16_t voltage);
-extern void UpdateDateEdit(uint16_t year, uint8_t month, uint8_t day);
-extern void UpdateTimeEdit(uint16_t hour, uint8_t min, uint8_t sec);
-extern void UpdateProgressBar(uint8_t percentage);
-extern void UpdateStatusText(const char *str);
-extern void AddGraphData(int16_t low_value, int16_t high_value);
-
-extern void BSP_Pointer_Update(void);
-extern void BSP_Background(void);
+volatile uint32_t sdram_buf_index = 0;
+const int CURRENT_MAX = 2480;
+uint32_t adc_avg_sum = 0;
+uint8_t	adc_avg_index = 0;
+uint16_t disp_fifo_low_buf[DISP_BUF_SIZE] = {0};
+uint16_t disp_fifo_high_buf[DISP_BUF_SIZE] = {0};
+volatile uint16_t disp_buf_head = 0;
+volatile uint16_t disp_buf_tail = 0;
+uint16_t disp_low = 0xFFFF;
+uint16_t disp_high = 0;
+uint16_t disp_timer = 0;
 
 /* USER CODE END PV */
 
@@ -114,6 +159,10 @@ void MX_USB_HOST_Process(void);
 
 /* USER CODE BEGIN PFP */
 
+extern void MainTaskFonts(void);
+void BSP_Pointer_Update(void);
+void BSP_Background(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -121,26 +170,24 @@ void MX_USB_HOST_Process(void);
 
 
 void myprintf(const char *fmt, ...) {
-  static char buffer[256];
-  va_list args;
-  va_start(args, fmt);
-  vsnprintf(buffer, sizeof(buffer), fmt, args);
-  va_end(args);
-
-  int len = strlen(buffer);
-  HAL_UART_Transmit(&huart1, (uint8_t*)buffer, len, -1);
-
+	static char buffer[256];
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(buffer, sizeof(buffer), fmt, args);
+	va_end(args);
+	int len = strlen(buffer);
+	HAL_UART_Transmit(&huart1, (uint8_t*)buffer, len, -1);
 }
 
 void USB_Error_Handler(FRESULT error_code)
 {
-  /* USER CODE BEGIN USB_Error_Handler */
-  /* User can add his own implementation to report the HAL error return state */
+	/* USER CODE BEGIN USB_Error_Handler */
+	/* User can add his own implementation to report the HAL error return state */
 	myprintf("ERROR (code=%d)\r\n", error_code);
-	HAL_GPIO_WritePin(LD4_GPIO_Port,LD4_Pin,GPIO_PIN_SET);
-  /* USER CODE END USB_Error_Handler */
+	/* USER CODE END USB_Error_Handler */
 }
 
+#ifdef USB_BENCHMARK
 void USB_Benchmark_Application(void)
 {
 	FRESULT res;                                          /* FatFs function common result code */
@@ -250,24 +297,16 @@ void USB_Benchmark_Application(void)
 	FATFS_UnLinkDriver(USBDISKPath);
 	myprintf("done\r\n");
 }
+#endif //USB_BENCHMARK
 
-
-
-#define EVT_VOLTAGE_FAIL	(1<<0)
-#define EVT_USB_ATTACH		(1<<1)
-#define EVT_USB_ATTACHED	(1<<2)
-#define EVT_USB_DETACH		(1<<3)
-
-volatile uint8_t events = 0;
-
-void USB_OnAttach(void) {
+FRESULT CheckFileWrite(void) {
 	FRESULT res;
-
-	char test_text[] = "Test write into the file.";
 	UINT byteswritten;
+	char test_text[] = "Test write into the file.";
+	const char filename[] = "_test_write.TXT";
+
 	// USB_Benchmark_Application();
-	events |= EVT_USB_ATTACH;
-	myprintf("\r\nUSB stick attached.\r\nCheck FS for access...\r\n");
+
 	myprintf("Mounting USB... ");
 	/* Register the file system object to the FatFs module */
 	if((res=f_mount(&USBDISKFatFs, (TCHAR const*)USBDISKPath, 0)) != FR_OK)
@@ -278,7 +317,7 @@ void USB_OnAttach(void) {
 	else
 	{
 		myprintf("ok\r\nOpening file for writing... ");
-		if((res = f_open(&MyFile, "_test_write.TXT", FA_CREATE_ALWAYS | FA_WRITE)) != FR_OK)
+		if((res = f_open(&MyFile, filename, FA_CREATE_ALWAYS | FA_WRITE)) != FR_OK)
 		{
 			USB_Error_Handler(res);
 		}
@@ -292,8 +331,16 @@ void USB_OnAttach(void) {
 			}
 			else
 			{
-				myprintf("ok\r\nClosing file. ");
+				myprintf("ok\r\nClosing and delete... ");
 				f_close(&MyFile);
+				if((res = f_unlink(filename)) != FR_OK)
+				{
+					USB_Error_Handler(res);
+				}
+				else
+				{
+					myprintf("ok\r\n");
+				}
 			}
 		}
 	}
@@ -302,53 +349,24 @@ void USB_OnAttach(void) {
 	/* Unlink the USB disk I/O driver */
 	FATFS_UnLinkDriver(USBDISKPath);
 	myprintf("done\r\n");
+	return res;
+}
 
-	if(res == FR_OK) {
-		events |= EVT_USB_ATTACHED;
-		myprintf("FS access granted successfully.\r\n");
-	} else {
-		myprintf("ERROR! FS access not granted!\r\n");
-	}
-	//HAL_Delay(2000);
+void USB_OnAttach(void) {
+	events |= EVT_USB_ATTACH;
 }
 
 void USB_OnDetach(void) {
 	events |= EVT_USB_DETACH;
-	events &= ~EVT_USB_ATTACHED;
-	myprintf("\r\nUSB stick detached.\r\n");
 }
 
-#define ADC_AVG_SIZE	16
-uint32_t adc_avg_sum = 0;
-uint8_t	adc_avg_index = 0;
-
-#define STORE_SECONDS	30
-#define STORE_FREQUENCY	10000
-#define SDRAM_BUF_SIZE	(STORE_FREQUENCY*STORE_SECONDS)
-volatile uint32_t sdram_buf_index = 0;
-
-#define SDRAM_BANK_ADDR     ((uint32_t)0xD0000000)
-#define WRITE_READ_ADDR     ((uint32_t)0x100000) //((uint32_t)0x0800)
-
-const int v_max = 600;
-
-#define HIGH_VOLTAGE_ALERT_THRESHOLD	500
-#define LOW_VOLTAGE_ALERT_THRESHOLD		-500
-
-#define DISP_BUF_SIZE	50
-uint16_t disp_fifo_low_buf[DISP_BUF_SIZE] = {0};
-uint16_t disp_fifo_high_buf[DISP_BUF_SIZE] = {0};
-volatile uint16_t disp_buf_head = 0;
-volatile uint16_t disp_buf_tail = 0;
-uint16_t disp_low = 0xFFFF;
-uint16_t disp_high = 0;
-#define DISP_TIMER_PERIOD	1000
-uint16_t disp_timer = 0;
+void USB_Connecting(void) {
+	events |= EVT_USB_CONNECTING;
+}
 
 
-int16_t GetVoltage(uint16_t adc_value) {
-	int16_t value = (((int)adc_value-2048) * v_max)/2048;
-	return value;
+int16_t GetCurrent(uint16_t adc_value) {
+	return (((int)adc_value-2048) * CURRENT_MAX)/2048;
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
@@ -359,7 +377,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
             the HAL_ADC_ConvCpltCallback could be implemented in the user file
    */
   UINT adcRawValue = HAL_ADC_GetValue(&hadc1);
-  //LD3_TOGGLE();
+  LD4_TOGGLE();
 
   adc_avg_sum += adcRawValue;
   adc_avg_index++;
@@ -404,14 +422,14 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	  }
 
 
-	  long adc_real_voltage = GetVoltage(adc_raw_avg_value);
-	  if(adc_real_voltage > HIGH_VOLTAGE_ALERT_THRESHOLD || adc_real_voltage < LOW_VOLTAGE_ALERT_THRESHOLD) {
-		  // TODO: stop conversions until data will be stored in file
-		  // ...
-
-		  HAL_TIM_Base_Stop(&htim2);
-		  events |= EVT_VOLTAGE_FAIL;
-	  }
+//	  long adc_real_voltage = GetCurrent(adc_raw_avg_value);
+//	  if(adc_real_voltage > HIGH_CURRENT_ALERT_THRESHOLD || adc_real_voltage < LOW_CURRENT_ALERT_THRESHOLD) {
+//		  // TODO: stop conversions until data will be stored in file
+//		  // ...
+//
+//		  HAL_TIM_Base_Stop(&htim2);
+//		  events |= EVT_VOLTAGE_FAIL;
+//	  }
   }
 
 }
@@ -419,8 +437,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 void StoreData(void) {
 	if(events&EVT_USB_ATTACHED) {
 		FRESULT res;                                          /* FatFs function common result code */
-
-		UpdateStatusText("Writing on USB stick...");
+#ifdef GUI_SUPPORT
+		UpdateUsbStatusText("Writing...", GUI_BLUE);
+#endif
 		myprintf("Mounting USB... ");
 		/* Register the file system object to the FatFs module */
 		if((res=f_mount(&USBDISKFatFs, (TCHAR const*)USBDISKPath, 0)) != FR_OK)
@@ -479,13 +498,15 @@ void StoreData(void) {
 					int iii = (i/1000)%10;
 					progress_str[j] = ".:|/-\\|/-\\|"[iii];
 					myprintf(progress_str);
+#ifdef GUI_SUPPORT
 					UpdateProgressBar(percentage);
 					DialogProcess();
+#endif
 				}
 				uint32_t address_offset = sdram_buf_index + i;
 				if(address_offset >= SDRAM_BUF_SIZE) address_offset -= SDRAM_BUF_SIZE;
 				uint16_t adc_value = *(__IO uint16_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR + sizeof(uint16_t)*address_offset);
-				int16_t voltage = GetVoltage(adc_value);
+				int16_t voltage = GetCurrent(adc_value);
 				sprintf(line, "%02d:%02d:%02d.%03d\t%d\r\n", hour, minute, second, fraction, voltage);
 				uint32_t line_size = strlen(line);
 
@@ -513,7 +534,9 @@ void StoreData(void) {
 				}
 			}
 			myprintf("Writing... [##############################] 100%%\r\n");
+#ifdef GUI_SUPPORT
 			UpdateProgressBar(100);
+#endif
 
 			f_close(&MyFile);
 
@@ -530,8 +553,10 @@ void StoreData(void) {
 		/* Unlink the USB disk I/O driver */
 		FATFS_UnLinkDriver(USBDISKPath);
 		myprintf("done\r\n");
+#ifdef GUI_SUPPORT
+		UpdateUsbStatusText("Ready", GUI_BLACK);
+#endif
 	}
-	UpdateStatusText("Monitoring...");
 }
 
 void RTC_InitTime(void) {
@@ -555,6 +580,8 @@ DWORD GetTimeFromRTC(void) {
 	        | ((DWORD)sTime.Seconds >> 1);
 }
 
+const uint8_t skip_prints = 0;//10;
+uint8_t skip_prints_cnt = 0;
 void PrintADCValues(void) {
 	if(disp_buf_head != disp_buf_tail) {
 
@@ -571,30 +598,34 @@ void PrintADCValues(void) {
 		/* Enable interrupts back */
 		__enable_irq();
 
-		int16_t low_voltage = GetVoltage(low);
-		int16_t high_voltage = GetVoltage(high);
-		AddGraphData(low_voltage, high_voltage);
+		int16_t low_current = GetCurrent(low);
+		int16_t high_current = GetCurrent(high);
 
 		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-		myprintf("[20%02d-%02d-%02d %02d:%02d:%02d] Vmin=%dV, Vmax=%dV        \r",
-				sDate.Year, sDate.Month, sDate.Date,
-				sTime.Hours, sTime.Minutes, sTime.Seconds,
-				low_voltage, high_voltage);
 
-		UpdateDateEdit(sDate.Year+2000, sDate.Month, sDate.Date);
-		UpdateTimeEdit(sTime.Hours, sTime.Minutes, sTime.Seconds);
-		if( low_voltage <= 0 && high_voltage >= 0 ) {
-			if( high_voltage >= (-low_voltage) ) {
-				UpdateVoltageEdit(high_voltage);
-			} else {
-				UpdateVoltageEdit(low_voltage);
-			}
-		} else if( high_voltage > 0 ) {
-			UpdateVoltageEdit(high_voltage);
-		} else {
-			UpdateVoltageEdit(low_voltage);
+		if( skip_prints_cnt++ == skip_prints ) {
+			myprintf("[20%02d-%02d-%02d %02d:%02d:%02d] Vmin=%dV, Vmax=%dV        \r",
+					sDate.Year, sDate.Month, sDate.Date,
+					sTime.Hours, sTime.Minutes, sTime.Seconds,
+					low_current, high_current);
+			skip_prints_cnt = 0;
 		}
+#ifdef GUI_SUPPORT
+		UpdateDateTimeEdit(sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+		AddGraphData(low_current, high_current);
+		if( low_current <= 0 && high_current >= 0 ) {
+			if( high_current >= (-low_current) ) {
+				UpdateCurrentEdit(high_current);
+			} else {
+				UpdateCurrentEdit(low_current);
+			}
+		} else if( high_current > 0 ) {
+			UpdateCurrentEdit(high_current);
+		} else {
+			UpdateCurrentEdit(low_current);
+		}
+#endif
 	}
 }
 
@@ -677,6 +708,7 @@ static void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM
   HAL_SDRAM_ProgramRefreshRate(hsdram, REFRESH_COUNT);
 }
 
+#ifdef GUI_SUPPORT
 /**
   * @brief  Initializes the STM32F429I-DISCO's LCD and LEDs resources.
   * @param  None
@@ -697,6 +729,7 @@ static void BSP_Config(void)
   /* Enable the CRC Module */
   __HAL_RCC_CRC_CLK_ENABLE();
 }
+#endif
 
 void TIM3_Init(void) {
 	  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
@@ -771,63 +804,129 @@ int main(void)
   MX_USB_HOST_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  myprintf("\r\nStarting...");
-  /* Initialize LCD and LEDs */
-  BSP_Config();
 
-  TIM3_Init();
+  	myprintf("\r\n\r\n\r\nStarting...");
 
-  /* Init the STemWin GUI Library */
-  GUI_Init();
-
-  WM_MULTIBUF_Enable(1);
-
-  /* Activate the use of memory device feature */
-  WM_SetCreateFlags(WM_CF_MEMDEV);
-
-  GUI_SetBkColor(GUI_BLACK);
-
-  GUI_Clear();
-
-  CreateDialog();
-
-  GUI_Initialized = 1;
-
-
+	#ifdef GUI_SUPPORT
+  	  	/* Initialize LCD and LEDs */
+		BSP_Config();
+		/* Init the STemWin GUI Library */
+		GUI_Init();
+		WM_MULTIBUF_Enable(1);
+		/* Activate the use of memory device feature */
+		WM_SetCreateFlags(WM_CF_MEMDEV);
+		GUI_SetBkColor(GUI_BLACK);
+		GUI_Clear();
+		CreateDialog();
+		//TIM3_Init();
+		GUI_Initialized = 1;
+	#endif
 
 	RTC_InitTime();
 	LD3_ON();
-	//HAL_TIM_Base_Start_IT(&htim2);
 	HAL_TIM_Base_Start(&htim2);
-	//HAL_ADC_Start(&hadc1);
 	HAL_ADC_Start_IT(&hadc1);
+
+	//HAL_TIM_Base_Start_IT(&htim2);
+	//HAL_ADC_Start(&hadc1);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	  myprintf("ok\r\n");
+
+	myprintf("ok\r\n");
+
 	while (1)
 	{
 		PrintADCValues();
-		if(events&EVT_VOLTAGE_FAIL) {
-			events &= ~EVT_VOLTAGE_FAIL;
+//		if(events&EVT_VOLTAGE_FAIL) {
+//			events &= ~EVT_VOLTAGE_FAIL;
+		if (B1_STATE() == GPIO_PIN_SET) {
+			HAL_TIM_Base_Stop(&htim2);
 
 			HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 			HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 
 			myprintf("\r\nTime to store voltage failure...\r\n");
 			StoreData();
-			HAL_Delay(2000);
+			//HAL_Delay(2000);
 			HAL_TIM_Base_Start(&htim2);
 		}
-
+		//BSP_Background();
+		//HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin); // red led toggle
+#ifdef GUI_SUPPORT
 		DialogProcess();
+#endif
 
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
+
+		if(events&EVT_VOLTAGE_FAIL){
+			events &= ~EVT_VOLTAGE_FAIL;
+		}
+
+		if(events&EVT_USB_ATTACH){
+			events &= ~EVT_USB_ATTACH;
+
+			myprintf("\r\nUSB stick attached.\r\nCheck FS for access...\r\n");
+			#ifdef GUI_SUPPORT
+				UpdateUsbStatusText("Attaching...", GUI_ORANGE);
+			#endif
+
+			FRESULT res = CheckFileWrite();
+
+			if(res == FR_OK) {
+				events |= EVT_USB_ATTACHED;
+				myprintf("FS access granted successfully.\r\n");
+				#ifdef GUI_SUPPORT
+					UpdateUsbStatusText("Ready", GUI_BLACK);
+				#endif
+			} else {
+				myprintf("ERROR! FS access not granted!\r\n");
+				#ifdef GUI_SUPPORT
+					UpdateUsbStatusText("Error", GUI_RED);
+				#endif
+			}
+			//HAL_Delay(2000);
+		}
+
+		if(events&EVT_USB_CONNECTING){
+			events &= ~EVT_USB_CONNECTING;
+			myprintf("\r\nConnecting USB device...\r\n");
+			#ifdef GUI_SUPPORT
+				UpdateUsbStatusText("Connecting...", GUI_ORANGE);
+			#endif
+		}
+
+		if(events&EVT_USB_DETACH){
+			events &= ~EVT_USB_DETACH;
+			events &= ~EVT_USB_ATTACHED;
+			myprintf("\r\nUSB stick detached.\r\n");
+			#ifdef GUI_SUPPORT
+				UpdateUsbStatusText("Not connected", GUI_RED);
+			#endif
+		}
+
+//		{
+//			uint8_t cmd_line[21];
+//			uint16_t rx_len = 0;
+//			if( HAL_UARTEx_ReceiveToIdle(&huart1, cmd_line, 20, &rx_len, 5) == HAL_OK && rx_len > 0 )
+//			{
+//				cmd_line[rx_len] = 0; //end of string
+//				myprintf("CMD: ");
+//				myprintf((char*)cmd_line);
+//				myprintf("\r\n");
+//			} else {
+//				if( rx_len )
+//				{
+//					myprintf("len: %d\r\n");
+//				}
+//			}
+//
+//		}
 	}
   /* USER CODE END 3 */
 }
@@ -1393,20 +1492,23 @@ void BSP_Pointer_Update(void)
   xDiff = (prev_state.X > ts.X) ? (prev_state.X - ts.X) : (ts.X - prev_state.X);
   yDiff = (prev_state.Y > ts.Y) ? (prev_state.Y - ts.Y) : (ts.Y - prev_state.Y);
 
-  if(ts.TouchDetected)
+  if((prev_state.TouchDetected != ts.TouchDetected )||
+     (xDiff > 3 )||
+       (yDiff > 3))
   {
-    if((prev_state.TouchDetected != ts.TouchDetected )||
-       (xDiff > 3 )||
-         (yDiff > 3))
+    prev_state.TouchDetected = ts.TouchDetected;
+
+    if((ts.X != 0) &&  (ts.Y != 0))
     {
-      prev_state = ts;
+      prev_state.X= ts.X;
+      prev_state.Y= ts.Y;
+    }
 
       TS_State.Layer = 0;
-      TS_State.x = ts.X;
-      TS_State.y = ts.Y;
+      TS_State.x = prev_state.X;
+      TS_State.y = prev_state.Y;
 
-      GUI_TOUCH_StoreStateEx(&TS_State);
-    }
+    GUI_TOUCH_StoreStateEx(&TS_State);
   }
 }
 /* USER CODE END 4 */
@@ -1427,7 +1529,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 
 	if (htim->Instance == TIM3) {
-		BSP_Background();
+//		BSP_Background();
+//		HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin); // red led toggle
 	}
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM6) {
