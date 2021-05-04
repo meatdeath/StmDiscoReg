@@ -908,23 +908,166 @@ int main(void)
 			#endif
 		}
 
-//		{
-//			uint8_t cmd_line[21];
-//			uint16_t rx_len = 0;
-//			if( HAL_UARTEx_ReceiveToIdle(&huart1, cmd_line, 20, &rx_len, 5) == HAL_OK && rx_len > 0 )
-//			{
-//				cmd_line[rx_len] = 0; //end of string
-//				myprintf("CMD: ");
-//				myprintf((char*)cmd_line);
-//				myprintf("\r\n");
-//			} else {
-//				if( rx_len )
-//				{
-//					myprintf("len: %d\r\n");
-//				}
-//			}
-//
-//		}
+		{
+			uint8_t cmd_line[21];
+			uint8_t cmd_len = 0;
+			uint16_t rx_len = 0;
+			if( HAL_UARTEx_ReceiveToIdle(&huart1, cmd_line, 1, &rx_len, 1) == HAL_OK && rx_len > 0 && cmd_line[0] == '~' )
+			{
+				myprintf("\r\n");
+				myprintf("Command mode activated\r\n");
+				HAL_Delay(2000);
+
+
+				while(1)
+				{
+					HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+					HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+					myprintf("Current date & time: 20%02d-%02d-%02d %02d:%02d:%02d\r\n",
+										sDate.Year, sDate.Month, sDate.Date,
+										sTime.Hours, sTime.Minutes, sTime.Seconds);
+					myprintf("Available commands:\r\n");
+					myprintf("\tY=xx - set year (0...99)\r\n");
+					myprintf("\tM=xx - set month (1-Jan, ..., 12-Dec)\r\n");
+					myprintf("\tD=xx - set date (1...31)\r\n");
+					myprintf("\th=xx - set hours (0...23)\r\n");
+					myprintf("\tm=xx - set minutes (0...59)\r\n");
+					myprintf("\ts=xx - set seconds (0...59)\r\n");
+					myprintf("\texit - Exit from command mode\r\n");
+					myprintf("CMD> ");
+					cmd_len = 0;
+					memset( cmd_line, 0, 21 );
+					char ch = 0;
+					while( ch != 13 ) {
+						if( HAL_UARTEx_ReceiveToIdle(&huart1, &ch, 1, &rx_len, 1) == HAL_OK && rx_len > 0 )
+						{
+							if( ch == 127 && cmd_len > 0 ) {
+								HAL_UART_Transmit(&huart1, &ch, 1, 1);
+								cmd_len--;
+							}
+							else if ( ch == 13 ) // enter
+							{
+								cmd_line[cmd_len] = 0;
+							}
+							else if ( (ch >= 'a' && ch <= 'z') ||
+									  (ch >= 'A' && ch <= 'Z') ||
+									  (ch >= '0' && ch <= '9') ||
+									  ch == '=' )
+							{
+								HAL_UART_Transmit(&huart1, &ch, 1, 1);
+								cmd_line[cmd_len++] = ch;
+							}
+						}
+					}
+					myprintf("\r\n");
+					if( strcmp((char*)cmd_line,"exit") == 0 )
+					{
+						break;
+					}
+					if( cmd_line[1] == '=' && cmd_len > 2 )
+					{
+						HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+						HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+						switch( cmd_line[0] )
+						{
+						case 'Y':
+							{
+								int year = 2021;
+								sscanf( &cmd_line[2], "%d", &year );
+								if( year >= 2000 ) year -= 2000;
+								if( year > 99 )
+								{
+									myprintf("Command error\r\n");
+									break;
+								}
+								sDate.Year = year;
+								HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+							}
+							break;
+						case 'M':
+						{
+							int month = 1;
+							sscanf( &cmd_line[2], "%d", &month );
+							if( month == 0 || month > 12 )
+							{
+								myprintf("Command error\r\n");
+								break;
+							}
+							sDate.Month = month;
+							HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+						}
+							break;
+						case 'D':
+						{
+							int date = 1;
+							sscanf( &cmd_line[2], "%d", &date );
+							if( date == 0 || date > 31 )
+							{
+								myprintf("Command error\r\n");
+								break;
+							}
+							sDate.Date = date;
+							HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+						}
+							break;
+						case 'h':
+						{
+							int hour = 0;
+							sscanf( &cmd_line[2], "%d", &hour );
+							if( hour > 23 )
+							{
+								myprintf("Command error\r\n");
+								break;
+							}
+							sTime.Hours = hour;
+							HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+						}
+							break;
+						case 'm':
+						{
+							int minute = 0;
+							sscanf( &cmd_line[2], "%d", &minute );
+							if( minute > 59 )
+							{
+								myprintf("Command error\r\n");
+								break;
+							}
+							sTime.Minutes = minute;
+							HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+						}
+							break;
+						case 's':
+						{
+							int second = 0;
+							sscanf( &cmd_line[2], "%d", &second );
+							if( second > 59 )
+							{
+								myprintf("Command error\r\n");
+								break;
+							}
+							sTime.Seconds = second;
+							HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+						}
+							break;
+						default:
+							myprintf("Command error\r\n");
+						}
+					}
+					else
+					{
+						myprintf("Command error\r\n");
+					}
+				}
+			}
+			else
+			{
+				if( rx_len )
+				{
+					myprintf("len: %d\r\n");
+				}
+			}
+
+		}
 	}
   /* USER CODE END 3 */
 }
