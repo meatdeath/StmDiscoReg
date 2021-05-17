@@ -134,7 +134,7 @@ WORD adc_dma_buf[ADC_DMA_BUF_SIZE];
 #endif
 
 volatile uint32_t sdram_buf_index = 0;
-const int CURRENT_MAX = 2480;
+const int CURRENT_MAX = 2496;
 uint32_t adc_avg_sum = 0;
 uint8_t	adc_avg_index = 0;
 uint16_t disp_fifo_low_buf[DISP_BUF_SIZE] = {0};
@@ -610,9 +610,9 @@ void PrintADCValues(void) {
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 
 		if( skip_prints_cnt++ == skip_prints ) {
-			myprintf("[20%02d-%02d-%02d %02d:%02d:%02d] Vmin=%dV, Vmax=%dV        \r",
+			myprintf("[20%02d-%02d-%02d %02d:%02d:%02d.%03d] Vmin=%dV, Vmax=%dV        \r",
 					sDate.Year, sDate.Month, sDate.Date,
-					sTime.Hours, sTime.Minutes, sTime.Seconds,
+					sTime.Hours, sTime.Minutes, sTime.Seconds, sTime.SubSeconds/10,
 					low_current, high_current);
 			skip_prints_cnt = 0;
 		}
@@ -829,7 +829,7 @@ int main(void)
 		GUI_Initialized = 1;
 	#endif
 
-	RTC_InitTime();
+	//RTC_InitTime();
 	LD3_ON();
 	HAL_TIM_Base_Start(&htim2);
 	HAL_ADC_Start_IT(&hadc1);
@@ -1072,7 +1072,7 @@ int main(void)
 			{
 				if( rx_len )
 				{
-					myprintf("len: %d\r\n");
+					myprintf("\r\nUnknown command key pressed (code=0x%02X)\r\n", cmd_line[0]);
 				}
 			}
 
@@ -1357,7 +1357,6 @@ static void MX_RTC_Init(void)
   RTC_DateTypeDef sDate = {0};
 
   /* USER CODE BEGIN RTC_Init 1 */
-
   /* USER CODE END RTC_Init 1 */
   /** Initialize RTC Only
   */
@@ -1374,7 +1373,7 @@ static void MX_RTC_Init(void)
   }
 
   /* USER CODE BEGIN Check_RTC_BKUP */
-
+  if(0) {
   /* USER CODE END Check_RTC_BKUP */
 
   /** Initialize RTC and set the Time and Date
@@ -1399,6 +1398,7 @@ static void MX_RTC_Init(void)
   }
   /* USER CODE BEGIN RTC_Init 2 */
 
+  }
   /* USER CODE END RTC_Init 2 */
 
 }
