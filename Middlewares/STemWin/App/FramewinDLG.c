@@ -21,6 +21,7 @@
 // USER START (Optionally insert additional includes)
 #include "stm32f429i_discovery_lcd.h"
 #include "stdio.h"
+#include "version.h"
 // USER END
 
 #include "DIALOG.h"
@@ -60,7 +61,7 @@
 *       _aDialogCreate
 */
 static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
-  { FRAMEWIN_CreateIndirect, "Framewin", ID_FRAMEWIN_0, 2, 1, 240, 320, 0, 0x64, 0 },
+  { FRAMEWIN_CreateIndirect, "Framewin", ID_FRAMEWIN_0, 1, 1, 240, 320, 0, 0x64, 0 },
   { GRAPH_CreateIndirect, "Graph", ID_GRAPH_0, 0, 47, 230, 158, 0, 0x0, 0 },
   { TEXT_CreateIndirect, "CurrentText", ID_TEXT_0, 35, 17, 63, 20, 0, 0x64, 0 },
   { EDIT_CreateIndirect, "EditCurrent", ID_EDIT_0, 105, 10, 82, 31, 0, 0x64, 0 },
@@ -244,6 +245,11 @@ const int16_t scaleFactor = sigAmplitude/graphVSize;
 void CreateDialog(void) {
 	hMainWin = CreateFramewin();
 	FRAMEWIN_SetClientColor(hMainWin,LCD_COLOR_LIGHTGRAY);
+
+
+    char win_name[30];
+    sprintf( win_name, "Registrator (build %d)", BUILD_VERSION );
+    FRAMEWIN_SetText(hMainWin, win_name);
 
 	hEditCurrent = WM_GetDialogItem(hMainWin, ID_EDIT_0);
 	hEditDateTime = WM_GetDialogItem(hMainWin, ID_EDIT_1);
