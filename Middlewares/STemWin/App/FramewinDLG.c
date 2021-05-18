@@ -248,7 +248,7 @@ void CreateDialog(void) {
 
 
     char win_name[30];
-    sprintf( win_name, "Registrator (build %d)", BUILD_VERSION );
+    sprintf( win_name, "Registrator (Build %d)", BUILD_VERSION );
     FRAMEWIN_SetText(hMainWin, win_name);
 
 	hEditCurrent = WM_GetDialogItem(hMainWin, ID_EDIT_0);

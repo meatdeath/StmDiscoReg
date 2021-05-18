@@ -93,6 +93,8 @@ DMA2D_HandleTypeDef hdma2d;
 
 I2C_HandleTypeDef hi2c3;
 
+IWDG_HandleTypeDef hiwdg;
+
 LTDC_HandleTypeDef hltdc;
 
 RTC_HandleTypeDef hrtc;
@@ -159,6 +161,7 @@ static void MX_I2C3_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_DMA2D_Init(void);
 static void MX_LTDC_Init(void);
+static void MX_IWDG_Init(void);
 void MX_USB_HOST_Process(void);
 
 /* USER CODE BEGIN PFP */
@@ -493,6 +496,8 @@ void StoreData(void) {
 			for(int i = 0; i < SDRAM_BUF_SIZE; i++) {
 				if((i%1000) == 0) {
 					char progress_str[60];
+
+					HAL_IWDG_Refresh(&hiwdg);
 					uint32_t percentage = (i*100)/SDRAM_BUF_SIZE;
 					sprintf(progress_str, "Writing... [______________________________] %ld%% \r", percentage);
 
@@ -559,6 +564,8 @@ void StoreData(void) {
 		FATFS_UnLinkDriver(USBDISKPath);
 		myprintf("done\r\n");
 #ifdef GUI_SUPPORT
+		HAL_Delay(300);
+		UpdateProgressBar(0);
 		UpdateUsbStatusText("Ready", GUI_BLACK);
 #endif
 	}
@@ -810,6 +817,7 @@ int main(void)
   MX_TIM2_Init();
   MX_DMA2D_Init();
   MX_LTDC_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
 
   	myprintf("\r\n\r\n\r\nStarting...");
@@ -846,6 +854,7 @@ int main(void)
 
 	while (1)
 	{
+		HAL_IWDG_Refresh(&hiwdg);
 		PrintADCValues();
 //		if(events&EVT_VOLTAGE_FAIL) {
 //			events &= ~EVT_VOLTAGE_FAIL;
@@ -921,7 +930,7 @@ int main(void)
 			uint8_t cmd_line[21];
 			uint8_t cmd_len = 0;
 			uint16_t rx_len = 0;
-			if( HAL_UARTEx_ReceiveToIdle(&huart1, cmd_line, 1, &rx_len, 1) == HAL_OK && rx_len > 0 && cmd_line[0] == '~' )
+			if( HAL_UARTEx_ReceiveToIdle(&huart1, cmd_line, 1, &rx_len, 1) == HAL_OK && rx_len > 0 && (cmd_line[0] == '~' || cmd_line[0] == '`') )
 			{
 				myprintf("\r\n");
 				myprintf("Command mode activated\r\n");
@@ -948,6 +957,8 @@ int main(void)
 					memset( cmd_line, 0, 21 );
 					uint8_t ch = 0;
 					while( ch != 13 ) {
+
+						HAL_IWDG_Refresh(&hiwdg);
 						if( HAL_UARTEx_ReceiveToIdle(&huart1, &ch, 1, &rx_len, 1) == HAL_OK && rx_len > 0 )
 						{
 							if( ch == 127 && cmd_len > 0 ) {
@@ -1098,8 +1109,9 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 8;
@@ -1256,6 +1268,34 @@ static void MX_I2C3_Init(void)
   /* USER CODE BEGIN I2C3_Init 2 */
 
   /* USER CODE END I2C3_Init 2 */
+
+}
+
+/**
+  * @brief IWDG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IWDG_Init(void)
+{
+
+  /* USER CODE BEGIN IWDG_Init 0 */
+
+  /* USER CODE END IWDG_Init 0 */
+
+  /* USER CODE BEGIN IWDG_Init 1 */
+
+  /* USER CODE END IWDG_Init 1 */
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
+  hiwdg.Init.Reload = 4095;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IWDG_Init 2 */
+
+  /* USER CODE END IWDG_Init 2 */
 
 }
 
