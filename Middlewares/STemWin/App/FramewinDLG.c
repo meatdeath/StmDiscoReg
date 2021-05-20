@@ -32,15 +32,15 @@
 *
 **********************************************************************
 */
-#define ID_FRAMEWIN_0            (GUI_ID_USER + 0x00)
-#define ID_GRAPH_0            (GUI_ID_USER + 0x01)
-#define ID_TEXT_0            (GUI_ID_USER + 0x03)
-#define ID_EDIT_0            (GUI_ID_USER + 0x04)
-#define ID_PROGBAR_0            (GUI_ID_USER + 0x05)
-#define ID_TEXT_1            (GUI_ID_USER + 0x0A)
-#define ID_TEXT_2            (GUI_ID_USER + 0x0B)
-#define ID_EDIT_1            (GUI_ID_USER + 0x0C)
-#define ID_TEXT_3            (GUI_ID_USER + 0x0D)
+#define ID_FRAMEWIN_0 (GUI_ID_USER + 0x00)
+#define ID_GRAPH_0 (GUI_ID_USER + 0x01)
+#define ID_TEXT_0 (GUI_ID_USER + 0x02)
+#define ID_EDIT_0 (GUI_ID_USER + 0x03)
+#define ID_PROGBAR_0 (GUI_ID_USER + 0x04)
+#define ID_TEXT_1 (GUI_ID_USER + 0x05)
+#define ID_TEXT_2 (GUI_ID_USER + 0x06)
+#define ID_EDIT_1 (GUI_ID_USER + 0x07)
+#define ID_TEXT_3 (GUI_ID_USER + 0x08)
 
 
 // USER START (Optionally insert additional defines)
@@ -65,11 +65,11 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { GRAPH_CreateIndirect, "Graph", ID_GRAPH_0, 0, 47, 230, 158, 0, 0x0, 0 },
   { TEXT_CreateIndirect, "CurrentText", ID_TEXT_0, 35, 17, 63, 20, 0, 0x64, 0 },
   { EDIT_CreateIndirect, "EditCurrent", ID_EDIT_0, 105, 10, 82, 31, 0, 0x64, 0 },
-  { PROGBAR_CreateIndirect, "Progbar", ID_PROGBAR_0, 10, 240, 210, 20, 0, 0x0, 0 },
-  { TEXT_CreateIndirect, "USBText", ID_TEXT_1, 10, 223, 60, 15, 0, 0x64, 0 },
+  { PROGBAR_CreateIndirect, "Progbar", ID_PROGBAR_0, 5, 240, 220, 20, 0, 0x0, 0 },
+  { TEXT_CreateIndirect, "USBText", ID_TEXT_1, 5, 220, 94, 20, 0, 0x64, 0 },
   { TEXT_CreateIndirect, "TextA", ID_TEXT_2, 190, 17, 30, 20, 0, 0x64, 0 },
-  { EDIT_CreateIndirect, "DateTimeEdit", ID_EDIT_1, 0, 273, 230, 16, 0, 0x64, 0 },
-  { TEXT_CreateIndirect, "USBStatusText", ID_TEXT_3, 92, 223, 128, 15, 0, 0x64, 0 },
+  { EDIT_CreateIndirect, "DateTimeEdit", ID_EDIT_1, 0, 268, 230, 21, 0, 0x64, 0 },
+  { TEXT_CreateIndirect, "USBStatusText", ID_TEXT_3, 100, 220, 125, 20, 0, 0x64, 0 },
   // USER START (Optionally insert additional widgets)
   // USER END
 };
@@ -104,7 +104,7 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
     hItem = pMsg->hWin;
     FRAMEWIN_SetText(hItem, "Registrator");
     FRAMEWIN_SetTitleHeight(hItem, 24);
-    FRAMEWIN_SetFont(hItem, GUI_FONT_16_ASCII);
+    FRAMEWIN_SetFont(hItem, GUI_FONT_20_ASCII);
     //
     // Initialization of 'Graph'
     //
@@ -129,7 +129,7 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_1);
     TEXT_SetText(hItem, "USB status");
-    TEXT_SetFont(hItem, GUI_FONT_13B_ASCII);
+    TEXT_SetFont(hItem, GUI_FONT_20_ASCII);
     //
     // Initialization of 'TextA'
     //
@@ -142,14 +142,14 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
     hItem = WM_GetDialogItem(pMsg->hWin, ID_EDIT_1);
     EDIT_SetText(hItem, "2021/04/29   17:48:27");
     EDIT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_VCENTER);
-    EDIT_SetFont(hItem, GUI_FONT_13B_ASCII);
+    EDIT_SetFont(hItem, GUI_FONT_20_ASCII);
     //
     // Initialization of 'USBStatusText'
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_3);
     TEXT_SetText(hItem, "Not connected");
     TEXT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_VCENTER);
-    TEXT_SetFont(hItem, GUI_FONT_13B_ASCII);
+    TEXT_SetFont(hItem, GUI_FONT_20_ASCII);
     TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x000000FF));
     // USER START (Optionally insert additional code for further widget initialization)
     // USER END

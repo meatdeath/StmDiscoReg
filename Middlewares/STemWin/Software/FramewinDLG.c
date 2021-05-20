@@ -21,6 +21,7 @@
 // USER START (Optionally insert additional includes)
 #include "stm32f429i_discovery_lcd.h"
 #include "stdio.h"
+#include "version.h"
 // USER END
 
 #include "DIALOG.h"
@@ -31,20 +32,16 @@
 *
 **********************************************************************
 */
-#define ID_FRAMEWIN_0            (GUI_ID_USER + 0x00)
-#define ID_GRAPH_0            (GUI_ID_USER + 0x01)
-#define ID_BUTTON_0            (GUI_ID_USER + 0x02)
-#define ID_TEXT_0            (GUI_ID_USER + 0x03)
-#define ID_EDIT_0            (GUI_ID_USER + 0x04)
-#define ID_PROGBAR_0            (GUI_ID_USER + 0x05)
-#define ID_TEXT_1            (GUI_ID_USER + 0x06)
-#define ID_EDIT_1            (GUI_ID_USER + 0x07)
-#define ID_TEXT_2            (GUI_ID_USER + 0x08)
-#define ID_EDIT_2            (GUI_ID_USER + 0x09)
-#define ID_TEXT_3            (GUI_ID_USER + 0x0A)
-#define ID_IMAGE_0            (GUI_ID_USER + 0x0B)
+#define ID_FRAMEWIN_0 (GUI_ID_USER + 0x00)
+#define ID_GRAPH_0 (GUI_ID_USER + 0x01)
+#define ID_TEXT_0 (GUI_ID_USER + 0x02)
+#define ID_EDIT_0 (GUI_ID_USER + 0x03)
+#define ID_PROGBAR_0 (GUI_ID_USER + 0x04)
+#define ID_TEXT_1 (GUI_ID_USER + 0x05)
+#define ID_TEXT_2 (GUI_ID_USER + 0x06)
+#define ID_EDIT_1 (GUI_ID_USER + 0x07)
+#define ID_TEXT_3 (GUI_ID_USER + 0x08)
 
-#define ID_IMAGE_0_IMAGE_0 0x00
 
 // USER START (Optionally insert additional defines)
 // USER END
@@ -55,24 +52,6 @@
 *
 **********************************************************************
 */
-/*********************************************************************
-*
-*       _acImage_0, "BMP", ID_IMAGE_0_IMAGE_0
-*/
-static const U8 _acImage_0[463] = {
-  0x42, 0x4D, 0xCE, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3E, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x32, 0x00, 0x00, 0x00, 0x32, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x90, 0x01, 0x00, 0x00, 0x12, 0x0B, 0x00, 0x00,
-  0x12, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC0, 0x00, 0xC2, 0x10, 0x84, 0x21, 0x08, 0x42, 0x40, 0x00, 0xA1, 0x08, 0x42, 0x10, 0x84, 0x21,
-  0x40, 0x00, 0x90, 0x84, 0x21, 0x08, 0x42, 0x10, 0xC0, 0x00, 0x88, 0x42, 0x10, 0x84, 0x21, 0x08, 0x40, 0x00, 0x84, 0x21, 0x08, 0x42, 0x10, 0x84, 0x40, 0x00, 0xC2, 0x10, 0x84, 0x21, 0x08, 0x42, 0x40, 0x00, 0xA1, 0x08, 0x42, 0x10, 0x84, 0x21, 0x40, 0x00,
-  0x90, 0x84, 0x21, 0x08, 0x42, 0x10, 0xC0, 0x00, 0x88, 0x42, 0x10, 0x84, 0x21, 0x08, 0x40, 0x00, 0x84, 0x21, 0x08, 0x42, 0x10, 0x84, 0x40, 0x00, 0xC2, 0x10, 0x84, 0x21, 0x08, 0x42, 0x40, 0x00, 0xA1, 0x08, 0x42, 0x10, 0x84, 0x21, 0x40, 0x00, 0x90, 0x84,
-  0x21, 0x08, 0x42, 0x10, 0xC0, 0x00, 0x88, 0x42, 0x10, 0x84, 0x21, 0x08, 0x40, 0x00, 0x84, 0x21, 0x08, 0x42, 0x10, 0x84, 0x40, 0x00, 0xC2, 0x10, 0x84, 0x21, 0x08, 0x42, 0x40, 0x00, 0xA1, 0x08, 0x42, 0x10, 0x84, 0x21, 0x40, 0x00, 0x90, 0x84, 0x21, 0x08,
-  0x42, 0x10, 0xC0, 0x00, 0x88, 0x42, 0x10, 0x84, 0x21, 0x08, 0x40, 0x00, 0x84, 0x21, 0x08, 0x42, 0x10, 0x84, 0x40, 0x00, 0xC2, 0x10, 0x84, 0x21, 0x08, 0x42, 0x40, 0x00, 0xA1, 0x08, 0x42, 0x10, 0x84, 0x21, 0x40, 0x00, 0x90, 0x84, 0x21, 0x08, 0x42, 0x10,
-  0xC0, 0x00, 0x88, 0x42, 0x10, 0x84, 0x21, 0x08, 0x40, 0x00, 0x84, 0x21, 0x08, 0x42, 0x10, 0x84, 0x40, 0x00, 0xC2, 0x10, 0x84, 0x21, 0x08, 0x42, 0x40, 0x00, 0xA1, 0x08, 0x42, 0x10, 0x84, 0x21, 0x40, 0x00, 0x90, 0x84, 0x21, 0x08, 0x42, 0x10, 0xC0, 0x00,
-  0x88, 0x42, 0x10, 0x84, 0x21, 0x08, 0x40, 0x00, 0x84, 0x21, 0x08, 0x42, 0x10, 0x84, 0x40, 0x00, 0xC2, 0x10, 0x84, 0x21, 0x08, 0x42, 0x40, 0x00, 0xA1, 0x08, 0x42, 0x10, 0x84, 0x21, 0x40, 0x00, 0x90, 0x84, 0x21, 0x08, 0x42, 0x10, 0xC0, 0x00, 0x88, 0x42,
-  0x10, 0x84, 0x21, 0x08, 0x40, 0x00, 0x84, 0x21, 0x08, 0x42, 0x10, 0x84, 0x40, 0x00, 0xC2, 0x10, 0x84, 0x21, 0x08, 0x42, 0x40, 0x00, 0xA1, 0x08, 0x42, 0x10, 0x84, 0x21, 0x40, 0x00, 0x90, 0x84, 0x21, 0x08, 0x42, 0x10, 0xC0, 0x00, 0x88, 0x42, 0x10, 0x84,
-  0x21, 0x08, 0x40, 0x00, 0x84, 0x21, 0x08, 0x42, 0x10, 0x84, 0x40, 0x00, 0xC2, 0x10, 0x84, 0x21, 0x08, 0x42, 0x40, 0x00, 0xA1, 0x08, 0x42, 0x10, 0x84, 0x21, 0x40, 0x00, 0x90, 0x84, 0x21, 0x08, 0x42, 0x10, 0xC0, 0x00, 0x88, 0x42, 0x10, 0x84, 0x21, 0x08,
-  0x40, 0x00, 0x84, 0x21, 0x08, 0x42, 0x10, 0x84, 0x40, 0x00, 0xC2, 0x10, 0x84, 0x21, 0x08, 0x42, 0x40, 0x00, 0xA1, 0x08, 0x42, 0x10, 0x84, 0x21, 0x40, 0x00, 0x90, 0x84, 0x21, 0x08, 0x42, 0x10, 0xC0, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC0, 0x00,
-  0x00,
-};
 
 // USER START (Optionally insert additional static data)
 // USER END
@@ -82,18 +61,15 @@ static const U8 _acImage_0[463] = {
 *       _aDialogCreate
 */
 static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
-  { FRAMEWIN_CreateIndirect, "Framewin", ID_FRAMEWIN_0, 0, 0, 240, 320, 0, 0x64, 0 },
-  { GRAPH_CreateIndirect, "Graph", ID_GRAPH_0, 0, 80, 230, 150, 0, 0x0, 0 },
-  { BUTTON_CreateIndirect, "ButtonSave", ID_BUTTON_0, 165, 240, 50, 35, 0, 0x0, 0 },
-  { TEXT_CreateIndirect, "Voltage", ID_TEXT_0, 21, 6, 75, 20, 0, 0x0, 0 },
-  { EDIT_CreateIndirect, "EditVoltage", ID_EDIT_0, 17, 30, 82, 31, 0, 0x64, 0 },
-  { PROGBAR_CreateIndirect, "Progbar", ID_PROGBAR_0, 15, 255, 136, 20, 0, 0x0, 0 },
-  { TEXT_CreateIndirect, "Date", ID_TEXT_1, 141, 5, 73, 16, 0, 0x0, 0 },
-  { EDIT_CreateIndirect, "EditDate", ID_EDIT_1, 140, 20, 80, 16, 0, 0x64, 0 },
-  { TEXT_CreateIndirect, "Time", ID_TEXT_2, 141, 34, 73, 20, 0, 0x0, 0 },
-  { EDIT_CreateIndirect, "EditTime", ID_EDIT_2, 140, 50, 80, 16, 0, 0x64, 0 },
-  { TEXT_CreateIndirect, "TextStatus", ID_TEXT_3, 15, 241, 137, 15, 0, 0x64, 0 },
-  { IMAGE_CreateIndirect, "ImageUsb", ID_IMAGE_0, 105, 5, 30, 30, 0, 0, 0 },
+  { FRAMEWIN_CreateIndirect, "Framewin", ID_FRAMEWIN_0, 1, 1, 240, 320, 0, 0x64, 0 },
+  { GRAPH_CreateIndirect, "Graph", ID_GRAPH_0, 0, 47, 230, 158, 0, 0x0, 0 },
+  { TEXT_CreateIndirect, "CurrentText", ID_TEXT_0, 35, 17, 63, 20, 0, 0x64, 0 },
+  { EDIT_CreateIndirect, "EditCurrent", ID_EDIT_0, 105, 10, 82, 31, 0, 0x64, 0 },
+  { PROGBAR_CreateIndirect, "Progbar", ID_PROGBAR_0, 5, 240, 220, 20, 0, 0x0, 0 },
+  { TEXT_CreateIndirect, "USBText", ID_TEXT_1, 5, 220, 94, 20, 0, 0x64, 0 },
+  { TEXT_CreateIndirect, "TextA", ID_TEXT_2, 190, 17, 30, 20, 0, 0x64, 0 },
+  { EDIT_CreateIndirect, "DateTimeEdit", ID_EDIT_1, 0, 268, 230, 21, 0, 0x64, 0 },
+  { TEXT_CreateIndirect, "USBStatusText", ID_TEXT_3, 100, 220, 125, 20, 0, 0x64, 0 },
   // USER START (Optionally insert additional widgets)
   // USER END
 };
@@ -104,20 +80,9 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 *
 **********************************************************************
 */
-/*********************************************************************
-*
-*       _GetImageById
-*/
-static const void * _GetImageById(U32 Id, U32 * pSize) {
-  switch (Id) {
-  case ID_IMAGE_0_IMAGE_0:
-    *pSize = sizeof(_acImage_0);
-    return (const void *)_acImage_0;
-  }
-  return NULL;
-}
 
 // USER START (Optionally insert additional static code)
+extern void myprintf(const char *fmt, ...);
 // USER END
 
 /*********************************************************************
@@ -125,11 +90,9 @@ static const void * _GetImageById(U32 Id, U32 * pSize) {
 *       _cbDialog
 */
 static void _cbDialog(WM_MESSAGE * pMsg) {
-  const void * pData;
-  WM_HWIN      hItem;
-  U32          FileSize;
-  int          NCode;
-  int          Id;
+  WM_HWIN hItem;
+  int     NCode;
+  int     Id;
   // USER START (Optionally insert additional variables)
   // USER END
 
@@ -139,67 +102,55 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
     // Initialization of 'Framewin'
     //
     hItem = pMsg->hWin;
-    FRAMEWIN_SetText(hItem, "Voltage Registrator");
+    FRAMEWIN_SetText(hItem, "Registrator");
     FRAMEWIN_SetTitleHeight(hItem, 24);
-    FRAMEWIN_SetFont(hItem, GUI_FONT_16_ASCII);
+    FRAMEWIN_SetFont(hItem, GUI_FONT_20_ASCII);
     //
     // Initialization of 'Graph'
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_GRAPH_0);
-    GRAPH_SetBorder(hItem, 30, 2, 2, 2);
+    GRAPH_SetBorder(hItem, 32, 2, 2, 2);
     //
-    // Initialization of 'ButtonSave'
-    //
-    hItem = WM_GetDialogItem(pMsg->hWin, ID_BUTTON_0);
-    BUTTON_SetFont(hItem, GUI_FONT_16_ASCII);
-    BUTTON_SetText(hItem, "Save");
-    //
-    // Initialization of 'Voltage'
+    // Initialization of 'CurrentText'
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_0);
     TEXT_SetFont(hItem, GUI_FONT_20_ASCII);
-    TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+    TEXT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_VCENTER);
+    TEXT_SetText(hItem, "Current");
     //
-    // Initialization of 'EditVoltage'
+    // Initialization of 'EditCurrent'
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_EDIT_0);
-    EDIT_SetText(hItem, "-543V");
+    EDIT_SetText(hItem, "0");
     EDIT_SetFont(hItem, GUI_FONT_32B_ASCII);
     EDIT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_VCENTER);
-    EDIT_SetTextColor(hItem, EDIT_CI_ENABLED, GUI_MAKE_COLOR(0x000000FF));
     //
-    // Initialization of 'Date'
+    // Initialization of 'USBText'
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_1);
-    TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+    TEXT_SetText(hItem, "USB status");
+    TEXT_SetFont(hItem, GUI_FONT_20_ASCII);
     //
-    // Initialization of 'EditDate'
-    //
-    hItem = WM_GetDialogItem(pMsg->hWin, ID_EDIT_1);
-    EDIT_SetText(hItem, "2021-04-26");
-    EDIT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-    //
-    // Initialization of 'Time'
+    // Initialization of 'TextA'
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_2);
-    TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+    TEXT_SetText(hItem, "A");
+    TEXT_SetFont(hItem, GUI_FONT_20_ASCII);
     //
-    // Initialization of 'EditTime'
+    // Initialization of 'DateTimeEdit'
     //
-    hItem = WM_GetDialogItem(pMsg->hWin, ID_EDIT_2);
-    EDIT_SetText(hItem, "00:00:00");
-    EDIT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+    hItem = WM_GetDialogItem(pMsg->hWin, ID_EDIT_1);
+    EDIT_SetText(hItem, "2021/04/29   17:48:27");
+    EDIT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_VCENTER);
+    EDIT_SetFont(hItem, GUI_FONT_20_ASCII);
     //
-    // Initialization of 'TextStatus'
+    // Initialization of 'USBStatusText'
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_3);
-    TEXT_SetText(hItem, "Monitoring...");
-    //
-    // Initialization of 'ImageUsb'
-    //
-    hItem = WM_GetDialogItem(pMsg->hWin, ID_IMAGE_0);
-    pData = _GetImageById(ID_IMAGE_0_IMAGE_0, &FileSize);
-    IMAGE_SetBMP(hItem, pData, FileSize);
+    TEXT_SetText(hItem, "Not connected");
+    TEXT_SetTextAlign(hItem, GUI_TA_RIGHT | GUI_TA_VCENTER);
+    TEXT_SetFont(hItem, GUI_FONT_20_ASCII);
+    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x000000FF));
     // USER START (Optionally insert additional code for further widget initialization)
     // USER END
     break;
@@ -207,21 +158,7 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
     Id    = WM_GetId(pMsg->hWinSrc);
     NCode = pMsg->Data.v;
     switch(Id) {
-    case ID_BUTTON_0: // Notifications sent by 'ButtonSave'
-      switch(NCode) {
-      case WM_NOTIFICATION_CLICKED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      case WM_NOTIFICATION_RELEASED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      // USER START (Optionally insert additional code for further notification handling)
-      // USER END
-      }
-      break;
-    case ID_EDIT_0: // Notifications sent by 'EditVoltage'
+    case ID_EDIT_0: // Notifications sent by 'EditCurrent'
       switch(NCode) {
       case WM_NOTIFICATION_CLICKED:
         // USER START (Optionally insert code for reacting on notification message)
@@ -239,25 +176,7 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
       // USER END
       }
       break;
-    case ID_EDIT_1: // Notifications sent by 'EditDate'
-      switch(NCode) {
-      case WM_NOTIFICATION_CLICKED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      case WM_NOTIFICATION_RELEASED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      case WM_NOTIFICATION_VALUE_CHANGED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      // USER START (Optionally insert additional code for further notification handling)
-      // USER END
-      }
-      break;
-    case ID_EDIT_2: // Notifications sent by 'EditTime'
+    case ID_EDIT_1: // Notifications sent by 'DateTimeEdit'
       switch(NCode) {
       case WM_NOTIFICATION_CLICKED:
         // USER START (Optionally insert code for reacting on notification message)
@@ -308,10 +227,9 @@ WM_HWIN CreateFramewin(void) {
 // USER START (Optionally insert additional public code)
 #define GRAPH_DATA_SIZE	200
 WM_HWIN hMainWin;
-WM_HWIN hEditVoltage;
-WM_HWIN hEditDate;
-WM_HWIN hEditTime;
-WM_HWIN hStatusText;
+WM_HWIN hEditCurrent;
+WM_HWIN hEditDateTime;
+WM_HWIN hUsbStatusText;
 WM_HWIN hProgBar;
 WM_HWIN hGraph;
 WM_HWIN hScale;
@@ -320,18 +238,26 @@ int16_t graphHighData[GRAPH_DATA_SIZE] = {0};
 GRAPH_DATA_Handle hGraphLowDataObj;
 GRAPH_DATA_Handle hGraphHighDataObj;
 
-int16_t scaleFactor = 1200/150;
+const int16_t graphVSize = 150;
+const int16_t sigAmplitude = 2*3000;
+const int16_t scaleFactor = sigAmplitude/graphVSize;
 
 void CreateDialog(void) {
 	hMainWin = CreateFramewin();
 	FRAMEWIN_SetClientColor(hMainWin,LCD_COLOR_LIGHTGRAY);
 
-	hEditVoltage = WM_GetDialogItem(hMainWin, ID_EDIT_0);
-	hEditDate = WM_GetDialogItem(hMainWin, ID_EDIT_1);
-	hEditTime = WM_GetDialogItem(hMainWin, ID_EDIT_2);
+
+    char win_name[30];
+    sprintf( win_name, "Registrator (Build %d)", BUILD_VERSION );
+    FRAMEWIN_SetText(hMainWin, win_name);
+
+	hEditCurrent = WM_GetDialogItem(hMainWin, ID_EDIT_0);
+	hEditDateTime = WM_GetDialogItem(hMainWin, ID_EDIT_1);
 	hProgBar = WM_GetDialogItem(hMainWin, ID_PROGBAR_0);
-	hStatusText = WM_GetDialogItem(hMainWin, ID_TEXT_3);
+	hUsbStatusText = WM_GetDialogItem(hMainWin, ID_TEXT_3);
 	hGraph = WM_GetDialogItem(hMainWin, ID_GRAPH_0);
+
+	//EDIT_SetDecMode(hEditCurrent,0,-2500,2500,0,GUI_EDIT_SIGNED);
 
 	GRAPH_SetGridVis(hGraph,1);
 	hGraphLowDataObj = GRAPH_DATA_YT_Create(GUI_GREEN,GRAPH_DATA_SIZE, graphLowData, 0);
@@ -340,18 +266,17 @@ void CreateDialog(void) {
 	hGraphHighDataObj = GRAPH_DATA_YT_Create(GUI_GREEN,GRAPH_DATA_SIZE, graphHighData, 0);
 	GRAPH_AttachData(hGraph, hGraphHighDataObj);
 
-	hScale = GRAPH_SCALE_Create(28, GUI_TA_RIGHT, GRAPH_SCALE_CF_VERTICAL, 100);
+
+	GRAPH_SetGridDistY(hGraph, 1000/scaleFactor);
+
+	GRAPH_DATA_YT_SetOffY(hGraphLowDataObj, graphVSize/2);
+	GRAPH_DATA_YT_SetOffY(hGraphHighDataObj, graphVSize/2);
+
+	hScale = GRAPH_SCALE_Create(28, GUI_TA_RIGHT, GRAPH_SCALE_CF_VERTICAL, 1000/scaleFactor);
 	GRAPH_AttachScale(hGraph, hScale);
-
-	GRAPH_SetGridDistY(hGraph, 100/4);
-
-	GRAPH_DATA_YT_SetOffY(hGraphLowDataObj, 75);
-	GRAPH_DATA_YT_SetOffY(hGraphHighDataObj, 75);
 	GRAPH_SCALE_SetFactor(hScale, scaleFactor);
-//	GRAPH_SetVSizeY(hGraph,1200);
-//	GRAPH_SetScrollValue(hGraph, GUI_COORD_Y, 100);
-	GRAPH_SCALE_SetOff(hScale,75);
-	GRAPH_SCALE_SetTickDist(hScale, 200/scaleFactor);
+	GRAPH_SCALE_SetOff(hScale, graphVSize/2);
+	//GRAPH_SCALE_SetTickDist(hScale, 1000/scaleFactor);
 	GRAPH_SCALE_SetTextColor(hScale, GUI_BLACK);
 }
 
@@ -361,41 +286,42 @@ void DialogProcess(void) {
 	WM_PaintWindowAndDescs(hMainWin);
 }
 
-void UpdateVoltageEdit(int16_t voltage) {
+extern const int CURRENT_MAX;
+
+void UpdateCurrentEdit(int16_t current) {
+	GUI_COLOR gui_color;
+
+	if( current >= 1900 || current <= -1900 ) {
+		gui_color = GUI_RED;
+	} else if( current >= 1500 || current <= -1500 ) {
+		gui_color = GUI_YELLOW;
+	} else {
+		gui_color = GUI_WHITE;
+	}
+
+    EDIT_SetBkColor(hEditCurrent, EDIT_CI_ENABLED, gui_color);
 
 	char str[10];
-	sprintf( str, "%dV", voltage );
-	GUI_COLOR gui_color;
-	if( voltage >= 450 || voltage <= -450 ) {
-		gui_color = GUI_RED;
-	} else if( voltage >= 350 || voltage <= -350) {
-		gui_color = GUI_ORANGE;
-	} else {
-		gui_color = GUI_DARKGREEN;
-	}
-    EDIT_SetTextColor(hEditVoltage, EDIT_CI_ENABLED, gui_color);
-	EDIT_SetText(hEditVoltage, str);
+	sprintf( str, "%d", current );
+	EDIT_SetText(hEditCurrent, str);
 
 }
 
-void UpdateDateEdit(uint16_t year, uint8_t month, uint8_t day) {
-	char str[11];
-	sprintf(str, "%04d-%02d-%02d", year, month, day);
-	EDIT_SetText(hEditDate, str);
-}
-
-void UpdateTimeEdit(uint16_t hour, uint8_t min, uint8_t sec) {
-	char str[11];
-	sprintf(str, "%02d:%02d:%02d", hour, min, sec);
-	EDIT_SetText(hEditTime, str);
+void UpdateDateTimeEdit(
+		uint16_t year, uint8_t month, uint8_t day,
+		uint16_t hour, uint8_t min, uint8_t sec) {
+	char str[25];
+	sprintf(str, "%04d-%02d-%02d   %02d:%02d:%02d", year, month, day, hour, min, sec);
+	EDIT_SetText(hEditDateTime, str);
 }
 
 void UpdateProgressBar(uint8_t percentage) {
 	PROGBAR_SetValue(hProgBar, percentage);
 }
 
-void UpdateStatusText(const char *str) {
-	TEXT_SetText(hStatusText, str);
+void UpdateUsbStatusText(const char *str, GUI_COLOR color) {
+	TEXT_SetTextColor(hUsbStatusText, color);
+	TEXT_SetText(hUsbStatusText, str);
 }
 
 void AddGraphData(int16_t low_value, int16_t high_value) {
