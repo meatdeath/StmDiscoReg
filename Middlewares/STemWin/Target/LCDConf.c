@@ -68,7 +68,7 @@
 
 /* Define Layer 0 color mode, orientation and sizes */
 #define COLOR_MODE_0  CMS_RGB565
-#define ORIENTATION_0 ROTATION_0
+#define ORIENTATION_0 ROTATION_180
 #define XSIZE_0       480
 #define YSIZE_0       272
 

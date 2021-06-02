@@ -1,3 +1,6 @@
 Debug
 DebugGui
 TouchGFX
+Middlewares/STemWin/Software/*.c
+Middlewares/STemWin/Software/*.h
+Middlewares/STemWin/Software

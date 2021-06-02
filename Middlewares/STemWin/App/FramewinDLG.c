@@ -21,6 +21,7 @@
 // USER START (Optionally insert additional includes)
 #include "stm32f429i_discovery_lcd.h"
 #include "stdio.h"
+#include "main.h"
 #include "version.h"
 // USER END
 
@@ -61,7 +62,7 @@
 *       _aDialogCreate
 */
 static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
-  { FRAMEWIN_CreateIndirect, "Framewin", ID_FRAMEWIN_0, 1, 1, 240, 320, 0, 0x64, 0 },
+  { FRAMEWIN_CreateIndirect, "Framewin", ID_FRAMEWIN_0, 0, 0, 240, 320, 0, 0x64, 0 },
   { GRAPH_CreateIndirect, "Graph", ID_GRAPH_0, 0, 47, 230, 158, 0, 0x0, 0 },
   { TEXT_CreateIndirect, "CurrentText", ID_TEXT_0, 35, 17, 63, 20, 0, 0x64, 0 },
   { EDIT_CreateIndirect, "EditCurrent", ID_EDIT_0, 105, 10, 82, 31, 0, 0x64, 0 },
@@ -180,6 +181,7 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
       switch(NCode) {
       case WM_NOTIFICATION_CLICKED:
         // USER START (Optionally insert code for reacting on notification message)
+    	  events |= EVT_DATE_TIME_DLG;
         // USER END
         break;
       case WM_NOTIFICATION_RELEASED:
@@ -311,7 +313,7 @@ void UpdateDateTimeEdit(
 		uint16_t year, uint8_t month, uint8_t day,
 		uint16_t hour, uint8_t min, uint8_t sec) {
 	char str[25];
-	sprintf(str, "%04d-%02d-%02d   %02d:%02d:%02d", year, month, day, hour, min, sec);
+	sprintf(str, "%04d / %02d / %02d    %02d : %02d : %02d", year, month, day, hour, min, sec);
 	EDIT_SetText(hEditDateTime, str);
 }
 

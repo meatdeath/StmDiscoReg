@@ -51,6 +51,19 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
+
+#define TOUCH
+
+// Events
+#define EVT_VOLTAGE_FAIL	(1<<0)
+#define EVT_USB_ATTACH		(1<<1)
+#define EVT_USB_ATTACHED	(1<<2)
+#define EVT_USB_DETACH		(1<<3)
+#define EVT_USB_CONNECTING	(1<<4)
+#define EVT_UART_RX			(1<<5)
+#define EVT_DATE_TIME_DLG	(1<<6)
+#define EVT_DATE_TIME_SETUP	(1<<7)
+extern volatile uint8_t events;
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
