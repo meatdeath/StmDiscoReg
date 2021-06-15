@@ -1787,12 +1787,12 @@ void BSP_Pointer_Update(void)
     }
 
       TS_State.Layer = 0;
-		  TS_State.x = prev_state.X;
-		  TS_State.y = prev_state.Y;
+	  TS_State.x = prev_state.X;
+	  TS_State.y = prev_state.Y;
 
-      //As program orientation is not working, then will do it manually
-		  TS_State.x = 240 - TS_State.x;
-		  TS_State.y = 320 - TS_State.y;
+      // STemWin touch orientation is not working, then will do it manually
+	  TS_State.x = 240 - TS_State.x;
+	  TS_State.y = 320 - TS_State.y;
 
     GUI_TOUCH_StoreStateEx(&TS_State);
   }
