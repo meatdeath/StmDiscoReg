@@ -840,7 +840,8 @@ int main(void)
 		WM_SetCreateFlags(WM_CF_MEMDEV);
 		GUI_SetBkColor(GUI_BLACK);
 		GUI_Clear();
-		int result = GUI_SetOrientation(GUI_ROTATION_180);
+		//int result = GUI_SetOrientation(GUI_ROTATION_180);
+		//GUI_TOUCH_SetOrientation(GUI_SWAP_XY);
 		CreateDialog();
 #ifdef TOUCH
 		TIM3_Init();
@@ -1786,8 +1787,12 @@ void BSP_Pointer_Update(void)
     }
 
       TS_State.Layer = 0;
-      TS_State.x = prev_state.X;
-      TS_State.y = prev_state.Y;
+		  TS_State.x = prev_state.X;
+		  TS_State.y = prev_state.Y;
+
+      //As program orientation is not working, then will do it manually
+		  TS_State.x = 240 - TS_State.x;
+		  TS_State.y = 320 - TS_State.y;
 
     GUI_TOUCH_StoreStateEx(&TS_State);
   }
